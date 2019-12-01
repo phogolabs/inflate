@@ -14,13 +14,14 @@ spec](https://swagger.io/docs/specification/serialization/).
 
 ## Usage
 
-Let's assume that we have an incoming http request `r`. In order to decode the
-following structure:
+Let's assume that we have an incoming http request `r`.
+
+We will decode the following structure:
 
 ```golang
 type Input struct {
    RequestID string                 `header:"X-Header-ID"`
-   Filter    map[string]interface{} `query:"filter,explode"`
+   Filter    map[string]interface{} `query:"filter"`
    UserID    string                 `path:"user_id"`
    Secret    string                 `cookie:"secret"`
 }
@@ -37,7 +38,7 @@ if err := reflectify.NewHeaderDecoder(r.Header).Decode(obj) {
 You can decode a object from a `http.Cookie` by using the following code:
 
 ```golang
-if err := reflectify.NewHeaderDecoder(r.Cookie()).Decode(obj) {
+if err := reflectify.NewCookieDecoder(r.Cookie()).Decode(obj) {
   panic(err)
 }
 ```
@@ -54,7 +55,7 @@ You can decode a object from a `chi.RouteParams` by using the following code:
 
 ```golang
 if ctx, ok := r.Context().Value(chi.RouteCtxKey).(*chi.Context); ok {
-	if err = reflectify.NewPathDecoder(&ctx.URLParams).Decode(obj); err != nil {
+  if err = reflectify.NewPathDecoder(&ctx.URLParams).Decode(obj); err != nil {
     panic(err)
   }
 }
