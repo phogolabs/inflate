@@ -35,6 +35,10 @@ func (p *PathProvider) New(value reflect.Value) Provider {
 
 // Value returns a primitive value
 func (p *PathProvider) Value(ctx *Context) (interface{}, error) {
+	if ctx.Options.IsEmpty() {
+		ctx.Options = append(ctx.Options, OptionSimple.String())
+	}
+
 	if ctx.Encoding.Has(EncodingText) {
 		return p.valueOf(ctx)
 	}
@@ -62,7 +66,7 @@ func (p *PathProvider) valueOf(ctx *Context) (interface{}, error) {
 	}
 
 	switch {
-	case ctx.Options.IsEmpty(), ctx.Options.Has(OptionSimple):
+	case ctx.Options.Has(OptionSimple):
 		return *param, nil
 	case ctx.Options.Has(OptionLabel):
 		prefix := "."
@@ -92,7 +96,7 @@ func (p *PathProvider) arrayOf(ctx *Context) ([]interface{}, error) {
 	)
 
 	switch {
-	case ctx.Options.IsEmpty(), ctx.Options.Has(OptionSimple):
+	case ctx.Options.Has(OptionSimple):
 		separator = ","
 	case ctx.Options.Has(OptionLabel):
 		prefix = "."
@@ -142,7 +146,7 @@ func (p *PathProvider) mapOf(ctx *Context) (m map[string]interface{}, err error)
 	)
 
 	switch {
-	case ctx.Options.IsEmpty(), ctx.Options.Has(OptionSimple):
+	case ctx.Options.Has(OptionSimple):
 		separator = ","
 	case ctx.Options.Has(OptionLabel):
 		prefix = "."

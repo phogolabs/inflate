@@ -34,6 +34,17 @@ func (p *CookieProvider) New(value reflect.Value) Provider {
 
 // Value returns a primitive value
 func (p *CookieProvider) Value(ctx *Context) (interface{}, error) {
+	if ctx.Options.IsEmpty() {
+		ctx.Options = append(ctx.Options, OptionForm.String())
+
+		switch ctx.FieldKind {
+		case reflect.Map, reflect.Struct:
+		case reflect.Array, reflect.Slice:
+		default:
+			ctx.Options = append(ctx.Options, OptionExplode.String())
+		}
+	}
+
 	if ctx.Encoding.Has(EncodingText) {
 		return p.valueOf(ctx)
 	}
@@ -60,10 +71,8 @@ func (p *CookieProvider) valueOf(ctx *Context) (interface{}, error) {
 		return nil, nil
 	}
 
-	if !ctx.Options.IsEmpty() {
-		if !ctx.Options.Has(OptionForm) {
-			return nil, p.notProvided(ctx, OptionForm)
-		}
+	if !ctx.Options.Has(OptionForm) {
+		return nil, p.notProvided(ctx, OptionForm)
 	}
 
 	return cookie.Value, nil
@@ -76,10 +85,8 @@ func (p *CookieProvider) arrayOf(ctx *Context) ([]interface{}, error) {
 		return nil, nil
 	}
 
-	if !ctx.Options.IsEmpty() {
-		if !ctx.Options.Has(OptionForm) {
-			return nil, p.notProvided(ctx, OptionForm)
-		}
+	if !ctx.Options.Has(OptionForm) {
+		return nil, p.notProvided(ctx, OptionForm)
 	}
 
 	if ctx.Options.Has(OptionExplode) {
@@ -106,10 +113,8 @@ func (p *CookieProvider) mapOf(ctx *Context) (map[string]interface{}, error) {
 		return nil, nil
 	}
 
-	if !ctx.Options.IsEmpty() {
-		if !ctx.Options.Has(OptionForm) {
-			return nil, p.notProvided(ctx, OptionForm)
-		}
+	if !ctx.Options.Has(OptionForm) {
+		return nil, p.notProvided(ctx, OptionForm)
 	}
 
 	if ctx.Options.Has(OptionExplode) {

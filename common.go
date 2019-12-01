@@ -10,6 +10,11 @@ import (
 // Option represents a tag option
 type Option string
 
+// String returns the string
+func (o Option) String() string {
+	return string(o)
+}
+
 const (
 	// OptionSimple is the simple opt
 	OptionSimple Option = "simple"

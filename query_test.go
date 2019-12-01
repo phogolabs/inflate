@@ -265,6 +265,9 @@ var _ = Describe("Query", func() {
 
 			Context("when the form option is not provided", func() {
 				BeforeEach(func() {
+					provider.Query = url.Values{}
+					provider.Query.Add("role", "admin")
+					provider.Query.Add("firstName", "Alex")
 					ctx.Options = []string{}
 				})
 

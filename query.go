@@ -34,6 +34,11 @@ func (p *QueryProvider) New(value reflect.Value) Provider {
 
 // Value returns a primitive value
 func (p *QueryProvider) Value(ctx *Context) (interface{}, error) {
+	if ctx.Options.IsEmpty() {
+		ctx.Options = append(ctx.Options, OptionForm.String())
+		ctx.Options = append(ctx.Options, OptionExplode.String())
+	}
+
 	if ctx.Encoding.Has(EncodingText) {
 		return p.valueOf(ctx)
 	}
@@ -60,7 +65,7 @@ func (p *QueryProvider) valueOf(ctx *Context) (interface{}, error) {
 	}
 
 	switch {
-	case ctx.Options.IsEmpty(), ctx.Options.Has(OptionForm):
+	case ctx.Options.Has(OptionForm):
 		return values[0], nil
 	case ctx.Options.Has(OptionSpaceDelimited):
 		return nil, p.notSupported(ctx, OptionSpaceDelimited)
@@ -87,7 +92,7 @@ func (p *QueryProvider) arrayOf(ctx *Context) ([]interface{}, error) {
 	separator := ""
 
 	switch {
-	case ctx.Options.IsEmpty(), ctx.Options.Has(OptionForm):
+	case ctx.Options.Has(OptionForm):
 		separator = ","
 	case ctx.Options.Has(OptionSpaceDelimited):
 		separator = " "
@@ -112,7 +117,7 @@ func (p *QueryProvider) arrayOf(ctx *Context) ([]interface{}, error) {
 
 func (p *QueryProvider) mapOf(ctx *Context) (map[string]interface{}, error) {
 	switch {
-	case ctx.Options.IsEmpty(), ctx.Options.Has(OptionForm):
+	case ctx.Options.Has(OptionForm):
 		if ctx.Options.Has(OptionExplode) {
 			return p.queryMap(), nil
 		}

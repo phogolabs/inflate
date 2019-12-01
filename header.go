@@ -35,6 +35,10 @@ func (p *HeaderProvider) New(value reflect.Value) Provider {
 
 // Value returns a primitive value
 func (p *HeaderProvider) Value(ctx *Context) (interface{}, error) {
+	if ctx.Options.IsEmpty() {
+		ctx.Options = append(ctx.Options, OptionSimple.String())
+	}
+
 	if ctx.Encoding.Has(EncodingText) {
 		return p.valueOf(ctx)
 	}
@@ -61,10 +65,8 @@ func (p *HeaderProvider) valueOf(ctx *Context) (interface{}, error) {
 		return nil, nil
 	}
 
-	if !ctx.Options.IsEmpty() {
-		if !ctx.Options.Has(OptionSimple) {
-			return nil, p.notProvided(ctx, OptionSimple)
-		}
+	if !ctx.Options.Has(OptionSimple) {
+		return nil, p.notProvided(ctx, OptionSimple)
 	}
 
 	return *header, nil
@@ -77,10 +79,8 @@ func (p *HeaderProvider) arrayOf(ctx *Context) ([]interface{}, error) {
 		return nil, nil
 	}
 
-	if !ctx.Options.IsEmpty() {
-		if !ctx.Options.Has(OptionSimple) {
-			return nil, p.notProvided(ctx, OptionSimple)
-		}
+	if !ctx.Options.Has(OptionSimple) {
+		return nil, p.notProvided(ctx, OptionSimple)
 	}
 
 	var (
@@ -103,10 +103,8 @@ func (p *HeaderProvider) mapOf(ctx *Context) (m map[string]interface{}, err erro
 		return nil, nil
 	}
 
-	if !ctx.Options.IsEmpty() {
-		if !ctx.Options.Has(OptionSimple) {
-			return nil, p.notProvided(ctx, OptionSimple)
-		}
+	if !ctx.Options.Has(OptionSimple) {
+		return nil, p.notProvided(ctx, OptionSimple)
 	}
 
 	var (
