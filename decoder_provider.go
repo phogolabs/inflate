@@ -1,37 +1,8 @@
 package reflectify
 
 import (
-	"fmt"
 	"reflect"
-	"strings"
 )
-
-// Encoding represents an reflectify option
-type Encoding string
-
-const (
-	// EncodingText is the text reflectify
-	EncodingText Encoding = "text"
-)
-
-// Encodings represents a list of options
-type Encodings []string
-
-// IsEmpty returns true if the options are empty
-func (opts Encodings) IsEmpty() bool {
-	return len(opts) == 0
-}
-
-// Has returns true if the option is available
-func (opts Encodings) Has(opt Encoding) bool {
-	for _, key := range opts {
-		if strings.EqualFold(string(opt), key) {
-			return true
-		}
-	}
-
-	return false
-}
 
 // Context represents a provider context
 type Context struct {
@@ -40,7 +11,6 @@ type Context struct {
 	FieldKind  reflect.Kind
 	FieldEmpty bool
 	Options    Options
-	Encoding   Encodings
 }
 
 //go:generate counterfeiter -fake-name Provider -o ./fake/provider.go . Provider
@@ -119,11 +89,6 @@ func (p *ValueProvider) Value(ctx *Context) (interface{}, error) {
 	}
 
 	return p.Var.Interface(), nil
-}
-
-func (p *ValueProvider) errorf(msg string, values ...interface{}) error {
-	msg = fmt.Sprintf(msg, values...)
-	return fmt.Errorf("field: %s", msg)
 }
 
 // NewDefaultDecoder creates a default decoder

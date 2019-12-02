@@ -33,6 +33,13 @@ var _ = Describe("Header", func() {
 		})
 	})
 
+	Describe("New", func() {
+		It("creates a new cookie decoder", func() {
+			decoder := provider.New(reflect.ValueOf("hello"))
+			Expect(decoder).NotTo(BeNil())
+		})
+	})
+
 	Describe("Value", func() {
 		BeforeEach(func() {
 			provider.Header.Set("X-MyHeader", "5")
@@ -67,6 +74,18 @@ var _ = Describe("Header", func() {
 					value, err := provider.Value(ctx)
 					Expect(err).To(Succeed())
 					Expect(value).To(Equal("5"))
+				})
+			})
+
+			Context("when the unknown option is provided", func() {
+				BeforeEach(func() {
+					ctx.Options = []string{"unknown"}
+				})
+
+				It("returns a error", func() {
+					value, err := provider.Value(ctx)
+					Expect(err).To(MatchError("header: field 'X-MyHeader' option: [simple] not provided"))
+					Expect(value).To(BeNil())
 				})
 			})
 		})
@@ -111,6 +130,18 @@ var _ = Describe("Header", func() {
 					Expect(value).To(ContainElement("3"))
 					Expect(value).To(ContainElement("4"))
 					Expect(value).To(ContainElement("5"))
+				})
+			})
+
+			Context("when the unknown option is provided", func() {
+				BeforeEach(func() {
+					ctx.Options = []string{"unknown"}
+				})
+
+				It("returns a error", func() {
+					value, err := provider.Value(ctx)
+					Expect(err).To(MatchError("header: field 'X-MyHeader' option: [simple] not provided"))
+					Expect(value).To(BeNil())
 				})
 			})
 		})
@@ -165,6 +196,18 @@ var _ = Describe("Header", func() {
 					Expect(value).To(HaveLen(2))
 					Expect(value).To(HaveKeyWithValue("role", "admin"))
 					Expect(value).To(HaveKeyWithValue("firstName", "Alex"))
+				})
+			})
+
+			Context("when the unknown option is provided", func() {
+				BeforeEach(func() {
+					ctx.Options = []string{"unknown"}
+				})
+
+				It("returns a error", func() {
+					value, err := provider.Value(ctx)
+					Expect(err).To(MatchError("header: field 'X-MyHeader' option: [simple] not provided"))
+					Expect(value).To(BeNil())
 				})
 			})
 

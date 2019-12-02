@@ -1,6 +1,7 @@
 package reflectify_test
 
 import (
+	"fmt"
 	"net/url"
 	"reflect"
 
@@ -33,6 +34,13 @@ var _ = Describe("Query", func() {
 		})
 	})
 
+	Describe("New", func() {
+		It("creates a new cookie decoder", func() {
+			decoder := provider.New(reflect.ValueOf("hello"))
+			Expect(decoder).NotTo(BeNil())
+		})
+	})
+
 	Describe("Value", func() {
 		Context("when the value is primitive type", func() {
 			BeforeEach(func() {
@@ -44,6 +52,18 @@ var _ = Describe("Query", func() {
 				value, err := provider.Value(ctx)
 				Expect(err).To(BeNil())
 				Expect(value).To(Equal("5"))
+			})
+
+			Context("when the option is unknown", func() {
+				BeforeEach(func() {
+					ctx.Options = []string{"unknown"}
+				})
+
+				It("returns the an error", func() {
+					value, err := provider.Value(ctx)
+					Expect(err).To(MatchError("query: field: 'id' option: [form space-delimited deep-object] not provided"))
+					Expect(value).To(BeNil())
+				})
 			})
 
 			Context("when the cookie is not found", func() {
@@ -124,6 +144,14 @@ var _ = Describe("Query", func() {
 				ctx.FieldKind = reflect.Array
 			})
 
+			Context("when the value is empty string", func() {
+				It("returns the value successfully", func() {
+					value, err := provider.Value(ctx)
+					Expect(err).To(BeNil())
+					Expect(value).To(BeNil())
+				})
+			})
+
 			Context("when the form option is provided", func() {
 				BeforeEach(func() {
 					provider.Query.Add("id", "3,4,5")
@@ -137,6 +165,18 @@ var _ = Describe("Query", func() {
 					Expect(value).To(ContainElement("3"))
 					Expect(value).To(ContainElement("4"))
 					Expect(value).To(ContainElement("5"))
+				})
+
+				Context("when the option is unknown", func() {
+					BeforeEach(func() {
+						ctx.Options = []string{"unknown"}
+					})
+
+					It("returns the an error", func() {
+						value, err := provider.Value(ctx)
+						Expect(err).To(MatchError("query: field: 'id' option: [form space-delimited pipe-delimited] not provided"))
+						Expect(value).To(BeNil())
+					})
 				})
 
 				Context("when the explode option is provided", func() {
@@ -233,6 +273,30 @@ var _ = Describe("Query", func() {
 				Expect(value).To(HaveKeyWithValue("firstName", "Alex"))
 			})
 
+			Context("when the value is empty string", func() {
+				BeforeEach(func() {
+					provider.Query = url.Values{}
+				})
+
+				It("returns the value successfully", func() {
+					value, err := provider.Value(ctx)
+					Expect(err).To(BeNil())
+					Expect(value).To(BeNil())
+				})
+			})
+
+			Context("when the option is unknown", func() {
+				BeforeEach(func() {
+					ctx.Options = []string{"unknown"}
+				})
+
+				It("returns the an error", func() {
+					value, err := provider.Value(ctx)
+					Expect(err).To(MatchError("query: field: 'id' option: [form space-delimited pipe-delimited] not provided"))
+					Expect(value).To(BeNil())
+				})
+			})
+
 			Context("when the explode option is provided", func() {
 				BeforeEach(func() {
 					provider.Query = url.Values{}
@@ -283,8 +347,8 @@ var _ = Describe("Query", func() {
 			Context("when the deep-object is on", func() {
 				BeforeEach(func() {
 					provider.Query = url.Values{}
-					provider.Query.Add("id[role]", "admin")
-					provider.Query.Add("id[firstName]", "Alex")
+					provider.Query.Add("id[role][user]", "admin")
+					provider.Query.Add("id[name][first]", "Alex")
 					ctx.Options = []string{"deep-object"}
 				})
 
@@ -292,8 +356,72 @@ var _ = Describe("Query", func() {
 					value, err := provider.Value(ctx)
 					Expect(err).To(BeNil())
 					Expect(value).To(HaveLen(2))
-					Expect(value).To(HaveKeyWithValue("role", "admin"))
-					Expect(value).To(HaveKeyWithValue("firstName", "Alex"))
+
+					kv := value.(map[string]interface{})
+					Expect(kv).To(HaveKey("role"))
+					Expect(kv["role"]).To(HaveKeyWithValue("user", "admin"))
+					Expect(kv).To(HaveKey("name"))
+					Expect(kv["name"]).To(HaveKeyWithValue("first", "Alex"))
+				})
+			})
+
+			Context("when the query is not valid", func() {
+				Context("when the end ] is missing", func() {
+					BeforeEach(func() {
+						provider.Query = url.Values{}
+						provider.Query.Add("id[role][user", "admin")
+						ctx.Options = []string{"deep-object"}
+					})
+
+					It("returns an error", func() {
+						value, err := provider.Value(ctx)
+						fmt.Println(value)
+						Expect(err).To(MatchError("query: field: 'id' not parsed: query: cannot parse key: [role][user"))
+						Expect(value).To(BeNil())
+					})
+				})
+
+				Context("when the start [ is missing", func() {
+					BeforeEach(func() {
+						provider.Query = url.Values{}
+						provider.Query.Add("id[role]user]", "admin")
+						ctx.Options = []string{"deep-object"}
+					})
+
+					It("returns an error", func() {
+						value, err := provider.Value(ctx)
+						fmt.Println(value)
+						Expect(err).To(MatchError("query: field: 'id' not parsed: query: cannot parse key: [role]user]"))
+						Expect(value).To(BeNil())
+					})
+				})
+
+				Context("when the start [[ is missing", func() {
+					BeforeEach(func() {
+						provider.Query = url.Values{}
+						provider.Query.Add("id[[role][user]", "admin")
+						ctx.Options = []string{"deep-object"}
+					})
+
+					It("returns an error", func() {
+						value, err := provider.Value(ctx)
+						Expect(err).To(MatchError("query: field: 'id' not parsed: query: cannot parse key: [[role][user]"))
+						Expect(value).To(BeNil())
+					})
+				})
+
+				Context("when the start [[ is missing", func() {
+					BeforeEach(func() {
+						provider.Query = url.Values{}
+						provider.Query.Add("id]]role][user]", "admin")
+						ctx.Options = []string{"deep-object"}
+					})
+
+					It("returns an error", func() {
+						value, err := provider.Value(ctx)
+						Expect(err).To(MatchError("query: field: 'id' not parsed: query: cannot parse key: ]]role][user]"))
+						Expect(value).To(BeNil())
+					})
 				})
 			})
 

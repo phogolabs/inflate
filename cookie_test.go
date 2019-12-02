@@ -35,6 +35,13 @@ var _ = Describe("Cookie", func() {
 		})
 	})
 
+	Describe("New", func() {
+		It("creates a new cookie decoder", func() {
+			decoder := provider.New(reflect.ValueOf("hello"))
+			Expect(decoder).NotTo(BeNil())
+		})
+	})
+
 	Describe("Value", func() {
 		Context("when the value is primitive type", func() {
 			BeforeEach(func() {
@@ -65,10 +72,22 @@ var _ = Describe("Cookie", func() {
 					ctx.Options = []string{}
 				})
 
-				It("returns a error", func() {
+				It("returns the value successfully", func() {
 					value, err := provider.Value(ctx)
 					Expect(err).To(BeNil())
 					Expect(value).To(Equal("5"))
+				})
+			})
+
+			Context("when the option is unknown", func() {
+				BeforeEach(func() {
+					ctx.Options = []string{"unknown"}
+				})
+
+				It("returns the an error", func() {
+					value, err := provider.Value(ctx)
+					Expect(err).To(MatchError("cookie: field: 'id' option: [form] not provided"))
+					Expect(value).To(BeNil())
 				})
 			})
 		})
@@ -109,6 +128,18 @@ var _ = Describe("Cookie", func() {
 				It("returns a error", func() {
 					value, err := provider.Value(ctx)
 					Expect(err).To(MatchError("cookie: field: 'id' option: [explode] not supported"))
+					Expect(value).To(BeNil())
+				})
+			})
+
+			Context("when the option is unknown", func() {
+				BeforeEach(func() {
+					ctx.Options = []string{"unknown"}
+				})
+
+				It("returns the an error", func() {
+					value, err := provider.Value(ctx)
+					Expect(err).To(MatchError("cookie: field: 'id' option: [form] not provided"))
 					Expect(value).To(BeNil())
 				})
 			})
@@ -165,6 +196,18 @@ var _ = Describe("Cookie", func() {
 					value, err := provider.Value(ctx)
 					Expect(err).To(BeNil())
 					Expect(value).To(HaveLen(0))
+				})
+			})
+
+			Context("when the option is unknown", func() {
+				BeforeEach(func() {
+					ctx.Options = []string{"unknown"}
+				})
+
+				It("returns the an error", func() {
+					value, err := provider.Value(ctx)
+					Expect(err).To(MatchError("cookie: field: 'id' option: [form] not provided"))
+					Expect(value).To(BeNil())
 				})
 			})
 

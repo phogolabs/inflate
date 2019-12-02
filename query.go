@@ -1,10 +1,12 @@
 package reflectify
 
 import (
+	"bytes"
 	"fmt"
 	"net/url"
 	"reflect"
 	"strings"
+	"text/scanner"
 )
 
 // NewQueryDecoder creates a path decoder
@@ -37,10 +39,6 @@ func (p *QueryProvider) Value(ctx *Context) (interface{}, error) {
 	if ctx.Options.IsEmpty() {
 		ctx.Options = append(ctx.Options, OptionForm.String())
 		ctx.Options = append(ctx.Options, OptionExplode.String())
-	}
-
-	if ctx.Encoding.Has(EncodingText) {
-		return p.valueOf(ctx)
 	}
 
 	switch ctx.FieldKind {
@@ -139,34 +137,7 @@ func (p *QueryProvider) mapOf(ctx *Context) (map[string]interface{}, error) {
 			return nil, p.notSupported(ctx, OptionExplode)
 		}
 
-		var (
-			kv     = p.queryMap()
-			result = make(map[string]interface{})
-			prefix = ctx.Field + "["
-			suffix = "]"
-		)
-
-		for k, v := range kv {
-			key := k
-
-			if !strings.HasPrefix(k, prefix) {
-				continue
-			}
-
-			key = strings.TrimPrefix(k, prefix)
-
-			if !strings.HasSuffix(k, suffix) {
-				continue
-			}
-
-			key = strings.TrimSuffix(key, suffix)
-
-			if key = strings.TrimSpace(key); key != "" {
-				result[key] = v
-			}
-		}
-
-		return result, nil
+		return p.deepObject(ctx)
 	default:
 		return nil, p.notProvided(ctx,
 			OptionForm,
@@ -174,6 +145,42 @@ func (p *QueryProvider) mapOf(ctx *Context) (map[string]interface{}, error) {
 			OptionPipeDelimited,
 		)
 	}
+}
+
+func (p *QueryProvider) deepObject(ctx *Context) (map[string]interface{}, error) {
+	result := make(map[string]interface{})
+
+	for k, v := range p.queryMap() {
+		k = strings.TrimPrefix(k, ctx.Field)
+
+		var (
+			values    = result
+			keys, err = p.path(k)
+			count     = len(keys)
+		)
+
+		if err != nil {
+			return nil, p.notParsed(ctx, err)
+		}
+
+		for index, key := range keys {
+			if index == count-1 {
+				values[key] = v
+				continue
+			}
+
+			next, ok := values[key].(map[string]interface{})
+
+			if !ok {
+				next = make(map[string]interface{})
+				values[key] = next
+			}
+
+			values = next
+		}
+	}
+
+	return result, nil
 }
 
 func (p *QueryProvider) queryArray(key string) []string {
@@ -189,12 +196,60 @@ func (p *QueryProvider) queryMap() map[string]interface{} {
 	for k, v := range p.Query {
 		if len(v) > 0 {
 			m[k] = v[0]
-		} else {
-			m[k] = nil
 		}
 	}
 
 	return m
+}
+
+func (p *QueryProvider) path(k string) ([]string, error) {
+	iter := &scanner.Scanner{}
+	iter.Init(bytes.NewBufferString(k))
+
+	var (
+		result = []string{}
+		err    = p.errorf("cannot parse key: %s", k)
+	)
+
+	const (
+		left  = '['
+		right = ']'
+	)
+
+	started := false
+
+	for {
+		token := iter.Scan()
+
+		switch token {
+		case left:
+			if started {
+				return nil, err
+			}
+
+			started = true
+			continue
+		case right:
+			if !started {
+				return nil, err
+			}
+
+			started = false
+			continue
+		case scanner.EOF:
+			if started {
+				return nil, err
+			}
+
+			return result, nil
+		default:
+			if !started {
+				return nil, err
+			}
+		}
+
+		result = append(result, iter.TokenText())
+	}
 }
 
 func (p *QueryProvider) notProvided(ctx *Context, opts ...Option) error {
@@ -203,6 +258,10 @@ func (p *QueryProvider) notProvided(ctx *Context, opts ...Option) error {
 
 func (p *QueryProvider) notSupported(ctx *Context, opt Option) error {
 	return p.errorf("field: '%v' option: [%v] not supported", ctx.Field, opt)
+}
+
+func (p *QueryProvider) notParsed(ctx *Context, err error) error {
+	return p.errorf("field: '%v' not parsed: %v", ctx.Field, err)
 }
 
 func (p *QueryProvider) errorf(msg string, values ...interface{}) error {

@@ -39,10 +39,6 @@ func (p *HeaderProvider) Value(ctx *Context) (interface{}, error) {
 		ctx.Options = append(ctx.Options, OptionSimple.String())
 	}
 
-	if ctx.Encoding.Has(EncodingText) {
-		return p.valueOf(ctx)
-	}
-
 	switch ctx.FieldKind {
 	case reflect.Map, reflect.Struct:
 		return p.mapOf(ctx)
@@ -138,10 +134,6 @@ func (p *HeaderProvider) header(name string) *string {
 
 func (p *HeaderProvider) notProvided(ctx *Context, opts ...Option) error {
 	return p.errorf("field '%v' option: %v not provided", ctx.Field, opts)
-}
-
-func (p *HeaderProvider) notSupported(ctx *Context, opt Option) error {
-	return p.errorf("field: %v option: [%v] not supported", ctx.Field, opt)
 }
 
 func (p *HeaderProvider) errorf(msg string, values ...interface{}) error {

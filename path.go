@@ -39,10 +39,6 @@ func (p *PathProvider) Value(ctx *Context) (interface{}, error) {
 		ctx.Options = append(ctx.Options, OptionSimple.String())
 	}
 
-	if ctx.Encoding.Has(EncodingText) {
-		return p.valueOf(ctx)
-	}
-
 	switch ctx.FieldKind {
 	case reflect.Map, reflect.Struct:
 		return p.mapOf(ctx)

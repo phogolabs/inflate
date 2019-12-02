@@ -45,10 +45,6 @@ func (p *CookieProvider) Value(ctx *Context) (interface{}, error) {
 		}
 	}
 
-	if ctx.Encoding.Has(EncodingText) {
-		return p.valueOf(ctx)
-	}
-
 	switch ctx.FieldKind {
 	case reflect.Map, reflect.Struct:
 		return p.mapOf(ctx)

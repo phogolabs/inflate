@@ -718,15 +718,15 @@ func (d *Decoder) context(field *Field) *Context {
 	)
 
 	ctx := &Context{
+		FieldTag:   d.Tag,
 		Field:      field.Name,
 		FieldKind:  field.Kind(),
 		Options:    field.Options,
-		FieldTag:   d.Tag,
 		FieldEmpty: reflect.DeepEqual(source, zero),
 	}
 
 	if tryTextUnmarshaller(field.Value) != nil {
-		ctx.Encoding = append(ctx.Encoding, "text")
+		ctx.FieldKind = reflect.String
 	}
 
 	return ctx

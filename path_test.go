@@ -33,8 +33,19 @@ var _ = Describe("Path", func() {
 		})
 	})
 
+	Describe("New", func() {
+		It("creates a new cookie decoder", func() {
+			decoder := provider.New(reflect.ValueOf("hello"))
+			Expect(decoder).NotTo(BeNil())
+		})
+	})
+
 	Describe("Value", func() {
 		Context("when the value is primitive type", func() {
+			BeforeEach(func() {
+				ctx.FieldKind = reflect.String
+			})
+
 			Context("when simple option is on", func() {
 				BeforeEach(func() {
 					provider.Param = &chi.RouteParams{}
@@ -58,6 +69,32 @@ var _ = Describe("Path", func() {
 						Expect(err).To(BeNil())
 						Expect(value).To(BeNil())
 					})
+				})
+
+				Context("when the option is not provided", func() {
+					BeforeEach(func() {
+						ctx.Options = []string{}
+					})
+
+					It("returns the value successfully", func() {
+						value, err := provider.Value(ctx)
+						Expect(err).To(BeNil())
+						Expect(value).To(Equal("5"))
+					})
+				})
+			})
+
+			Context("when the option is unknown", func() {
+				BeforeEach(func() {
+					provider.Param = &chi.RouteParams{}
+					provider.Param.Add("id", "5")
+					ctx.Options = []string{"unknown"}
+				})
+
+				It("returns the value successfully", func() {
+					value, err := provider.Value(ctx)
+					Expect(err).To(MatchError("path: field: id option: [simple label matrix] not provided"))
+					Expect(value).To(BeNil())
 				})
 			})
 
@@ -116,6 +153,20 @@ var _ = Describe("Path", func() {
 		Context("when the value is array type", func() {
 			BeforeEach(func() {
 				ctx.FieldKind = reflect.Array
+			})
+
+			Context("when the option is unknown", func() {
+				BeforeEach(func() {
+					provider.Param = &chi.RouteParams{}
+					provider.Param.Add("id", "3,4,5")
+					ctx.Options = []string{"unknown"}
+				})
+
+				It("returns the value successfully", func() {
+					value, err := provider.Value(ctx)
+					Expect(err).To(MatchError("path: field: id option: [simple label matrix] not provided"))
+					Expect(value).To(BeNil())
+				})
 			})
 
 			Context("when simple option is on", func() {
@@ -267,6 +318,20 @@ var _ = Describe("Path", func() {
 		Context("when the value is map type", func() {
 			BeforeEach(func() {
 				ctx.FieldKind = reflect.Map
+			})
+
+			Context("when the option is unknown", func() {
+				BeforeEach(func() {
+					provider.Param = &chi.RouteParams{}
+					provider.Param.Add("id", "role,admin,firstName,Alex")
+					ctx.Options = []string{"unknown"}
+				})
+
+				It("returns the value successfully", func() {
+					value, err := provider.Value(ctx)
+					Expect(err).To(MatchError("path: field: id option: [simple label matrix] not provided"))
+					Expect(value).To(BeNil())
+				})
 			})
 
 			Context("when simple option is on", func() {

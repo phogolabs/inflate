@@ -1,6 +1,8 @@
 package reflectify_test
 
 import (
+	"reflect"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -29,6 +31,13 @@ var _ = Describe("Set", func() {
 		Expect(t.FirstName).To(Equal("John"))
 		Expect(t.LastName).To(Equal("Peterson"))
 	})
+
+	Describe("New", func() {
+		It("returns the provider", func() {
+			provider := &reflectify.ValueProvider{}
+			Expect(provider.New(reflect.Value{})).NotTo(BeNil())
+		})
+	})
 })
 
 var _ = Describe("Defaults", func() {
@@ -47,5 +56,12 @@ var _ = Describe("Defaults", func() {
 		Expect(t.FirstName).To(Equal("John"))
 		Expect(t.LastName).To(Equal("Peterson"))
 		Expect(t.Age).To(Equal(22))
+	})
+
+	Describe("New", func() {
+		It("returns the provider", func() {
+			provider := &reflectify.DefaultProvider{}
+			Expect(provider).To(Equal(provider.New(reflect.Value{})))
+		})
 	})
 })
