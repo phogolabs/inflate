@@ -1,4 +1,4 @@
-package reflectify
+package inflate
 
 import (
 	"fmt"
@@ -11,14 +11,17 @@ import (
 // NewPathDecoder creates a path decoder
 func NewPathDecoder(r *chi.RouteParams) *Decoder {
 	return &Decoder{
-		Tag: "path",
+		TagName: "path",
+		Converter: &Converter{
+			TagName: "path",
+		},
 		Provider: &PathProvider{
 			Param: r,
 		},
 	}
 }
 
-var _ Provider = &PathProvider{}
+var _ ValueProvider = &PathProvider{}
 
 // PathProvider represents a parameter provider that fetches values from
 // incoming request's header
@@ -26,20 +29,13 @@ type PathProvider struct {
 	Param *chi.RouteParams
 }
 
-// New returns a new provider
-func (p *PathProvider) New(value reflect.Value) Provider {
-	return &ValueProvider{
-		Var: value,
-	}
-}
-
 // Value returns a primitive value
 func (p *PathProvider) Value(ctx *Context) (interface{}, error) {
-	if ctx.Options.IsEmpty() {
-		ctx.Options = append(ctx.Options, OptionSimple.String())
+	if len(ctx.Tag.Options) == 0 {
+		ctx.Tag.AddOption(OptionSimple)
 	}
 
-	switch ctx.FieldKind {
+	switch ctx.Kind {
 	case reflect.Map, reflect.Struct:
 		return p.mapOf(ctx)
 	case reflect.Array, reflect.Slice:
@@ -55,20 +51,20 @@ func (p *PathProvider) Value(ctx *Context) (interface{}, error) {
 }
 
 func (p *PathProvider) valueOf(ctx *Context) (interface{}, error) {
-	param := p.param(ctx.Field)
+	param := p.param(ctx.Tag.Name)
 
 	if param == nil {
 		return nil, nil
 	}
 
 	switch {
-	case ctx.Options.Has(OptionSimple):
+	case ctx.Tag.HasOption(OptionSimple):
 		return *param, nil
-	case ctx.Options.Has(OptionLabel):
+	case ctx.Tag.HasOption(OptionLabel):
 		prefix := "."
 		return strings.TrimPrefix(*param, prefix), nil
-	case ctx.Options.Has(OptionMatrix):
-		prefix := fmt.Sprintf(";%s=", ctx.Field)
+	case ctx.Tag.HasOption(OptionMatrix):
+		prefix := fmt.Sprintf(";%s=", ctx.Tag.Name)
 		return strings.TrimPrefix(*param, prefix), nil
 	default:
 		return nil, p.notProvided(ctx,
@@ -80,7 +76,7 @@ func (p *PathProvider) valueOf(ctx *Context) (interface{}, error) {
 }
 
 func (p *PathProvider) arrayOf(ctx *Context) ([]interface{}, error) {
-	param := p.param(ctx.Field)
+	param := p.param(ctx.Tag.Name)
 
 	if param == nil {
 		return nil, nil
@@ -92,20 +88,20 @@ func (p *PathProvider) arrayOf(ctx *Context) ([]interface{}, error) {
 	)
 
 	switch {
-	case ctx.Options.Has(OptionSimple):
+	case ctx.Tag.HasOption(OptionSimple):
 		separator = ","
-	case ctx.Options.Has(OptionLabel):
+	case ctx.Tag.HasOption(OptionLabel):
 		prefix = "."
 		separator = ","
 
-		if ctx.Options.Has(OptionExplode) {
+		if ctx.Tag.HasOption(OptionExplode) {
 			separator = prefix
 		}
-	case ctx.Options.Has(OptionMatrix):
+	case ctx.Tag.HasOption(OptionMatrix):
 		separator = ","
-		prefix = fmt.Sprintf(";%s=", ctx.Field)
+		prefix = fmt.Sprintf(";%s=", ctx.Tag.Name)
 
-		if ctx.Options.Has(OptionExplode) {
+		if ctx.Tag.HasOption(OptionExplode) {
 			separator = prefix
 		}
 	default:
@@ -130,7 +126,7 @@ func (p *PathProvider) arrayOf(ctx *Context) ([]interface{}, error) {
 }
 
 func (p *PathProvider) mapOf(ctx *Context) (m map[string]interface{}, err error) {
-	param := p.param(ctx.Field)
+	param := p.param(ctx.Tag.Name)
 
 	if param == nil {
 		return nil, nil
@@ -142,20 +138,20 @@ func (p *PathProvider) mapOf(ctx *Context) (m map[string]interface{}, err error)
 	)
 
 	switch {
-	case ctx.Options.Has(OptionSimple):
+	case ctx.Tag.HasOption(OptionSimple):
 		separator = ","
-	case ctx.Options.Has(OptionLabel):
+	case ctx.Tag.HasOption(OptionLabel):
 		prefix = "."
 		separator = ","
 
-		if ctx.Options.Has(OptionExplode) {
+		if ctx.Tag.HasOption(OptionExplode) {
 			separator = prefix
 		}
-	case ctx.Options.Has(OptionMatrix):
+	case ctx.Tag.HasOption(OptionMatrix):
 		separator = ","
-		prefix = fmt.Sprintf(";%s=", ctx.Field)
+		prefix = fmt.Sprintf(";%s=", ctx.Tag.Name)
 
-		if ctx.Options.Has(OptionExplode) {
+		if ctx.Tag.HasOption(OptionExplode) {
 			separator = ";"
 			prefix = ";"
 		}
@@ -172,7 +168,7 @@ func (p *PathProvider) mapOf(ctx *Context) (m map[string]interface{}, err error)
 		parts = strings.Split(value, separator)
 	)
 
-	if ctx.Options.Has(OptionExplode) {
+	if ctx.Tag.HasOption(OptionExplode) {
 		m, err = explodeMap(parts)
 	} else {
 		m, err = convertMap(parts)
@@ -195,8 +191,8 @@ func (p *PathProvider) param(name string) *string {
 	return nil
 }
 
-func (p *PathProvider) notProvided(ctx *Context, opts ...Option) error {
-	return p.errorf("field: %v option: %v not provided", ctx.Field, opts)
+func (p *PathProvider) notProvided(ctx *Context, opts ...string) error {
+	return p.errorf("field: %v option: %v not provided", ctx.Tag.Name, opts)
 }
 
 func (p *PathProvider) errorf(msg string, values ...interface{}) error {

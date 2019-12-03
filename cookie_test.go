@@ -1,4 +1,4 @@
-package reflectify_test
+package inflate_test
 
 import (
 	"net/http"
@@ -7,46 +7,53 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/phogolabs/reflectify"
+	"github.com/phogolabs/inflate"
 )
 
 var _ = Describe("Cookie", func() {
 	var (
-		provider *reflectify.CookieProvider
-		ctx      *reflectify.Context
+		provider *inflate.CookieProvider
+		ctx      *inflate.Context
 	)
 
 	BeforeEach(func() {
-		ctx = &reflectify.Context{
+		ctx = &inflate.Context{
 			Field: "id",
+			Tag: &inflate.Tag{
+				Key:  "fake",
+				Name: "id",
+			},
 		}
 
-		provider = &reflectify.CookieProvider{
-			Cookies: []*http.Cookie{
-				&http.Cookie{Name: "id"},
-			},
+		provider = &inflate.CookieProvider{
+			[]*http.Cookie{&http.Cookie{Name: "id"}},
 		}
 	})
 
 	Describe("NewCookieDecoder", func() {
-		It("creates a new cookie decoder", func() {
-			decoder := reflectify.NewCookieDecoder([]*http.Cookie{})
+		It("creates a new path decoder", func() {
+			decoder := inflate.NewCookieDecoder([]*http.Cookie{})
 			Expect(decoder).NotTo(BeNil())
 		})
 	})
 
-	Describe("New", func() {
-		It("creates a new cookie decoder", func() {
-			decoder := provider.New(reflect.ValueOf("hello"))
-			Expect(decoder).NotTo(BeNil())
-		})
-	})
-
-	Describe("Value", func() {
-		Context("when the value is primitive type", func() {
+	Context("when the value is primitive type", func() {
+		Context("when the cookie is not found", func() {
 			BeforeEach(func() {
+				ctx.Tag.Name = "name"
+			})
+
+			It("returns a nil value successfully", func() {
+				value, err := provider.Value(ctx)
+				Expect(err).To(BeNil())
+				Expect(value).To(BeNil())
+			})
+		})
+
+		Context("when the form option is not provided", func() {
+			BeforeEach(func() {
+				ctx.Tag.Options = []string{}
 				provider.Cookies[0].Value = "5"
-				ctx.Options = []string{"form"}
 			})
 
 			It("returns the value successfully", func() {
@@ -54,49 +61,27 @@ var _ = Describe("Cookie", func() {
 				Expect(err).To(BeNil())
 				Expect(value).To(Equal("5"))
 			})
-
-			Context("when the cookie is not found", func() {
-				BeforeEach(func() {
-					ctx.Field = "name"
-				})
-
-				It("returns a nil value successfully", func() {
-					value, err := provider.Value(ctx)
-					Expect(err).To(BeNil())
-					Expect(value).To(BeNil())
-				})
-			})
-
-			Context("when the form option is not provided", func() {
-				BeforeEach(func() {
-					ctx.Options = []string{}
-				})
-
-				It("returns the value successfully", func() {
-					value, err := provider.Value(ctx)
-					Expect(err).To(BeNil())
-					Expect(value).To(Equal("5"))
-				})
-			})
-
-			Context("when the option is unknown", func() {
-				BeforeEach(func() {
-					ctx.Options = []string{"unknown"}
-				})
-
-				It("returns the an error", func() {
-					value, err := provider.Value(ctx)
-					Expect(err).To(MatchError("cookie: field: 'id' option: [form] not provided"))
-					Expect(value).To(BeNil())
-				})
-			})
 		})
 
+		Context("when the option is unknown", func() {
+			BeforeEach(func() {
+				ctx.Tag.Options = []string{"unknown"}
+			})
+
+			It("returns the an error", func() {
+				value, err := provider.Value(ctx)
+				Expect(err).To(MatchError("cookie: field: 'id' option: [form] not provided"))
+				Expect(value).To(BeNil())
+			})
+		})
+	})
+
+	Describe("Value", func() {
 		Context("when the value is array type", func() {
 			BeforeEach(func() {
 				provider.Cookies[0].Value = "3,4,5"
-				ctx.FieldKind = reflect.Array
-				ctx.Options = []string{"form"}
+				ctx.Kind = reflect.Array
+				ctx.Tag.Options = []string{"form"}
 			})
 
 			It("returns the value successfully", func() {
@@ -110,7 +95,7 @@ var _ = Describe("Cookie", func() {
 
 			Context("when the cookie is not found", func() {
 				BeforeEach(func() {
-					ctx.Field = "name"
+					ctx.Tag.Name = "name"
 				})
 
 				It("returns a nil value successfully", func() {
@@ -122,7 +107,7 @@ var _ = Describe("Cookie", func() {
 
 			Context("when the explode option is not provided", func() {
 				BeforeEach(func() {
-					ctx.Options = append(ctx.Options, "explode")
+					ctx.Tag.Options = append(ctx.Tag.Options, "explode")
 				})
 
 				It("returns a error", func() {
@@ -134,7 +119,7 @@ var _ = Describe("Cookie", func() {
 
 			Context("when the option is unknown", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{"unknown"}
+					ctx.Tag.Options = []string{"unknown"}
 				})
 
 				It("returns the an error", func() {
@@ -146,7 +131,7 @@ var _ = Describe("Cookie", func() {
 
 			Context("when the form option is not provided", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{}
+					ctx.Tag.Options = []string{}
 				})
 
 				It("returns a error", func() {
@@ -163,8 +148,8 @@ var _ = Describe("Cookie", func() {
 		Context("when the value is map type", func() {
 			BeforeEach(func() {
 				provider.Cookies[0].Value = "role,admin,firstName,Alex"
-				ctx.FieldKind = reflect.Map
-				ctx.Options = []string{"form"}
+				ctx.Kind = reflect.Map
+				ctx.Tag.Options = []string{"form"}
 			})
 
 			It("returns the value successfully", func() {
@@ -177,7 +162,7 @@ var _ = Describe("Cookie", func() {
 
 			Context("when the explode option is  provided", func() {
 				BeforeEach(func() {
-					ctx.Options = append(ctx.Options, "explode")
+					ctx.Tag.Options = append(ctx.Tag.Options, "explode")
 				})
 
 				It("returns a error", func() {
@@ -189,7 +174,7 @@ var _ = Describe("Cookie", func() {
 
 			Context("when the cookie is not found", func() {
 				BeforeEach(func() {
-					ctx.Field = "name"
+					ctx.Tag.Name = "name"
 				})
 
 				It("returns a nil value successfully", func() {
@@ -201,7 +186,7 @@ var _ = Describe("Cookie", func() {
 
 			Context("when the option is unknown", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{"unknown"}
+					ctx.Tag.Options = []string{"unknown"}
 				})
 
 				It("returns the an error", func() {
@@ -225,7 +210,7 @@ var _ = Describe("Cookie", func() {
 
 			Context("when the form option is not provided", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{}
+					ctx.Tag.Options = []string{}
 				})
 
 				It("returns a error", func() {

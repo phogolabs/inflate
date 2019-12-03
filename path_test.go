@@ -1,4 +1,4 @@
-package reflectify_test
+package inflate_test
 
 import (
 	"reflect"
@@ -7,35 +7,32 @@ import (
 	. "github.com/onsi/gomega"
 
 	"github.com/go-chi/chi"
-	"github.com/phogolabs/reflectify"
+	"github.com/phogolabs/inflate"
 )
 
 var _ = Describe("Path", func() {
 	var (
-		provider *reflectify.PathProvider
-		ctx      *reflectify.Context
+		provider *inflate.PathProvider
+		ctx      *inflate.Context
 	)
 
 	BeforeEach(func() {
-		ctx = &reflectify.Context{
+		ctx = &inflate.Context{
 			Field: "id",
+			Tag: &inflate.Tag{
+				Key:  "fake",
+				Name: "id",
+			},
 		}
 
-		provider = &reflectify.PathProvider{
+		provider = &inflate.PathProvider{
 			Param: &chi.RouteParams{},
 		}
 	})
 
 	Describe("NewPathDecoder", func() {
 		It("creates a new path decoder", func() {
-			decoder := reflectify.NewPathDecoder(&chi.RouteParams{})
-			Expect(decoder).NotTo(BeNil())
-		})
-	})
-
-	Describe("New", func() {
-		It("creates a new cookie decoder", func() {
-			decoder := provider.New(reflect.ValueOf("hello"))
+			decoder := inflate.NewPathDecoder(&chi.RouteParams{})
 			Expect(decoder).NotTo(BeNil())
 		})
 	})
@@ -43,14 +40,14 @@ var _ = Describe("Path", func() {
 	Describe("Value", func() {
 		Context("when the value is primitive type", func() {
 			BeforeEach(func() {
-				ctx.FieldKind = reflect.String
+				ctx.Kind = reflect.String
 			})
 
 			Context("when simple option is on", func() {
 				BeforeEach(func() {
 					provider.Param = &chi.RouteParams{}
 					provider.Param.Add("id", "5")
-					ctx.Options = []string{"simple"}
+					ctx.Tag.Options = []string{"simple"}
 				})
 
 				It("returns the value successfully", func() {
@@ -61,7 +58,7 @@ var _ = Describe("Path", func() {
 
 				Context("when the param is not found", func() {
 					BeforeEach(func() {
-						ctx.Field = "name"
+						ctx.Tag.Name = "name"
 					})
 
 					It("returns a nil value successfully", func() {
@@ -73,7 +70,7 @@ var _ = Describe("Path", func() {
 
 				Context("when the option is not provided", func() {
 					BeforeEach(func() {
-						ctx.Options = []string{}
+						ctx.Tag.Options = []string{}
 					})
 
 					It("returns the value successfully", func() {
@@ -88,7 +85,7 @@ var _ = Describe("Path", func() {
 				BeforeEach(func() {
 					provider.Param = &chi.RouteParams{}
 					provider.Param.Add("id", "5")
-					ctx.Options = []string{"unknown"}
+					ctx.Tag.Options = []string{"unknown"}
 				})
 
 				It("returns the value successfully", func() {
@@ -102,7 +99,7 @@ var _ = Describe("Path", func() {
 				BeforeEach(func() {
 					provider.Param = &chi.RouteParams{}
 					provider.Param.Add("id", ".5")
-					ctx.Options = []string{"label"}
+					ctx.Tag.Options = []string{"label"}
 				})
 
 				It("returns the value successfully", func() {
@@ -113,7 +110,7 @@ var _ = Describe("Path", func() {
 
 				Context("when the param is not found", func() {
 					BeforeEach(func() {
-						ctx.Field = "name"
+						ctx.Tag.Name = "name"
 					})
 
 					It("returns a nil value successfully", func() {
@@ -127,7 +124,7 @@ var _ = Describe("Path", func() {
 			Context("when matrix option is on", func() {
 				BeforeEach(func() {
 					provider.Param.Add("id", ";id=5")
-					ctx.Options = []string{"matrix"}
+					ctx.Tag.Options = []string{"matrix"}
 				})
 
 				It("returns the value successfully", func() {
@@ -138,7 +135,7 @@ var _ = Describe("Path", func() {
 
 				Context("when the param is not found", func() {
 					BeforeEach(func() {
-						ctx.Field = "name"
+						ctx.Tag.Name = "name"
 					})
 
 					It("returns a nil value successfully", func() {
@@ -152,14 +149,14 @@ var _ = Describe("Path", func() {
 
 		Context("when the value is array type", func() {
 			BeforeEach(func() {
-				ctx.FieldKind = reflect.Array
+				ctx.Kind = reflect.Array
 			})
 
 			Context("when the option is unknown", func() {
 				BeforeEach(func() {
 					provider.Param = &chi.RouteParams{}
 					provider.Param.Add("id", "3,4,5")
-					ctx.Options = []string{"unknown"}
+					ctx.Tag.Options = []string{"unknown"}
 				})
 
 				It("returns the value successfully", func() {
@@ -173,7 +170,7 @@ var _ = Describe("Path", func() {
 				BeforeEach(func() {
 					provider.Param = &chi.RouteParams{}
 					provider.Param.Add("id", "3,4,5")
-					ctx.Options = []string{"simple"}
+					ctx.Tag.Options = []string{"simple"}
 				})
 
 				It("returns the value successfully", func() {
@@ -187,7 +184,7 @@ var _ = Describe("Path", func() {
 
 				Context("when the param is not found", func() {
 					BeforeEach(func() {
-						ctx.Field = "name"
+						ctx.Tag.Name = "name"
 					})
 
 					It("returns a nil value successfully", func() {
@@ -202,7 +199,7 @@ var _ = Describe("Path", func() {
 				BeforeEach(func() {
 					provider.Param = &chi.RouteParams{}
 					provider.Param.Add("id", ".3,4,5")
-					ctx.Options = []string{"label"}
+					ctx.Tag.Options = []string{"label"}
 				})
 
 				It("returns the value successfully", func() {
@@ -216,7 +213,7 @@ var _ = Describe("Path", func() {
 
 				Context("when the param is not found", func() {
 					BeforeEach(func() {
-						ctx.Field = "name"
+						ctx.Tag.Name = "name"
 					})
 
 					It("returns a nil value successfully", func() {
@@ -230,7 +227,7 @@ var _ = Describe("Path", func() {
 					BeforeEach(func() {
 						provider.Param = &chi.RouteParams{}
 						provider.Param.Add("id", ".3.4.5")
-						ctx.Options = append(ctx.Options, "explode")
+						ctx.Tag.Options = append(ctx.Tag.Options, "explode")
 					})
 
 					It("returns the value successfully", func() {
@@ -244,7 +241,7 @@ var _ = Describe("Path", func() {
 
 					Context("when the param is not found", func() {
 						BeforeEach(func() {
-							ctx.Field = "name"
+							ctx.Tag.Name = "name"
 						})
 
 						It("returns a nil value successfully", func() {
@@ -260,7 +257,7 @@ var _ = Describe("Path", func() {
 				BeforeEach(func() {
 					provider.Param = &chi.RouteParams{}
 					provider.Param.Add("id", ";id=3,4,5")
-					ctx.Options = []string{"matrix"}
+					ctx.Tag.Options = []string{"matrix"}
 				})
 
 				It("returns the value successfully", func() {
@@ -274,7 +271,7 @@ var _ = Describe("Path", func() {
 
 				Context("when the param is not found", func() {
 					BeforeEach(func() {
-						ctx.Field = "name"
+						ctx.Tag.Name = "name"
 					})
 
 					It("returns a nil value successfully", func() {
@@ -288,7 +285,7 @@ var _ = Describe("Path", func() {
 					BeforeEach(func() {
 						provider.Param = &chi.RouteParams{}
 						provider.Param.Add("id", ";id=3;id=4;id=5")
-						ctx.Options = append(ctx.Options, "explode")
+						ctx.Tag.Options = append(ctx.Tag.Options, "explode")
 					})
 
 					It("returns the value successfully", func() {
@@ -302,7 +299,7 @@ var _ = Describe("Path", func() {
 
 					Context("when the param is not found", func() {
 						BeforeEach(func() {
-							ctx.Field = "name"
+							ctx.Tag.Name = "name"
 						})
 
 						It("returns a nil value successfully", func() {
@@ -317,14 +314,14 @@ var _ = Describe("Path", func() {
 
 		Context("when the value is map type", func() {
 			BeforeEach(func() {
-				ctx.FieldKind = reflect.Map
+				ctx.Kind = reflect.Map
 			})
 
 			Context("when the option is unknown", func() {
 				BeforeEach(func() {
 					provider.Param = &chi.RouteParams{}
 					provider.Param.Add("id", "role,admin,firstName,Alex")
-					ctx.Options = []string{"unknown"}
+					ctx.Tag.Options = []string{"unknown"}
 				})
 
 				It("returns the value successfully", func() {
@@ -338,7 +335,7 @@ var _ = Describe("Path", func() {
 				BeforeEach(func() {
 					provider.Param = &chi.RouteParams{}
 					provider.Param.Add("id", "role,admin,firstName,Alex")
-					ctx.Options = []string{"simple"}
+					ctx.Tag.Options = []string{"simple"}
 				})
 
 				It("returns the value successfully", func() {
@@ -364,7 +361,7 @@ var _ = Describe("Path", func() {
 
 				Context("when the param is not found", func() {
 					BeforeEach(func() {
-						ctx.Field = "name"
+						ctx.Tag.Name = "name"
 					})
 
 					It("returns a nil value successfully", func() {
@@ -378,7 +375,7 @@ var _ = Describe("Path", func() {
 					BeforeEach(func() {
 						provider.Param = &chi.RouteParams{}
 						provider.Param.Add("id", "role=admin,firstName=Alex")
-						ctx.Options = append(ctx.Options, "explode")
+						ctx.Tag.Options = append(ctx.Tag.Options, "explode")
 					})
 
 					It("returns the value successfully", func() {
@@ -395,7 +392,7 @@ var _ = Describe("Path", func() {
 				BeforeEach(func() {
 					provider.Param = &chi.RouteParams{}
 					provider.Param.Add("id", ".role,admin,firstName,Alex")
-					ctx.Options = []string{"label"}
+					ctx.Tag.Options = []string{"label"}
 				})
 
 				It("returns the value successfully", func() {
@@ -410,7 +407,7 @@ var _ = Describe("Path", func() {
 					BeforeEach(func() {
 						provider.Param = &chi.RouteParams{}
 						provider.Param.Add("id", ".role=admin.firstName=Alex")
-						ctx.Options = append(ctx.Options, "explode")
+						ctx.Tag.Options = append(ctx.Tag.Options, "explode")
 					})
 
 					It("returns the value successfully", func() {
@@ -427,7 +424,7 @@ var _ = Describe("Path", func() {
 				BeforeEach(func() {
 					provider.Param = &chi.RouteParams{}
 					provider.Param.Add("id", ";id=role,admin,firstName,Alex")
-					ctx.Options = []string{"matrix"}
+					ctx.Tag.Options = []string{"matrix"}
 				})
 
 				It("returns the value successfully", func() {
@@ -442,7 +439,7 @@ var _ = Describe("Path", func() {
 					BeforeEach(func() {
 						provider.Param = &chi.RouteParams{}
 						provider.Param.Add("id", ";role=admin;firstName=Alex")
-						ctx.Options = append(ctx.Options, "explode")
+						ctx.Tag.Options = append(ctx.Tag.Options, "explode")
 					})
 
 					It("returns the value successfully", func() {

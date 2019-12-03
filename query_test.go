@@ -1,42 +1,38 @@
-package reflectify_test
+package inflate_test
 
 import (
-	"fmt"
 	"net/url"
 	"reflect"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/phogolabs/reflectify"
+	"github.com/phogolabs/inflate"
 )
 
 var _ = Describe("Query", func() {
 	var (
-		provider *reflectify.QueryProvider
-		ctx      *reflectify.Context
+		provider *inflate.QueryProvider
+		ctx      *inflate.Context
 	)
 
 	BeforeEach(func() {
-		ctx = &reflectify.Context{
+		ctx = &inflate.Context{
 			Field: "id",
+			Tag: &inflate.Tag{
+				Key:  "fake",
+				Name: "id",
+			},
 		}
 
-		provider = &reflectify.QueryProvider{
+		provider = &inflate.QueryProvider{
 			Query: url.Values{},
 		}
 	})
 
 	Describe("NewQueryDecoder", func() {
 		It("creates a new query decoder", func() {
-			decoder := reflectify.NewQueryDecoder(url.Values{})
-			Expect(decoder).NotTo(BeNil())
-		})
-	})
-
-	Describe("New", func() {
-		It("creates a new cookie decoder", func() {
-			decoder := provider.New(reflect.ValueOf("hello"))
+			decoder := inflate.NewQueryDecoder(url.Values{})
 			Expect(decoder).NotTo(BeNil())
 		})
 	})
@@ -45,7 +41,7 @@ var _ = Describe("Query", func() {
 		Context("when the value is primitive type", func() {
 			BeforeEach(func() {
 				provider.Query.Set("id", "5")
-				ctx.Options = []string{"form"}
+				ctx.Tag.Options = []string{"form"}
 			})
 
 			It("returns the value successfully", func() {
@@ -56,7 +52,7 @@ var _ = Describe("Query", func() {
 
 			Context("when the option is unknown", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{"unknown"}
+					ctx.Tag.Options = []string{"unknown"}
 				})
 
 				It("returns the an error", func() {
@@ -68,7 +64,7 @@ var _ = Describe("Query", func() {
 
 			Context("when the cookie is not found", func() {
 				BeforeEach(func() {
-					ctx.Field = "name"
+					ctx.Tag.Name = "name"
 				})
 
 				It("returns a nil value successfully", func() {
@@ -80,7 +76,7 @@ var _ = Describe("Query", func() {
 
 			Context("when the space-delimited option is on", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{"space-delimited"}
+					ctx.Tag.Options = []string{"space-delimited"}
 				})
 
 				It("returns an error", func() {
@@ -92,7 +88,7 @@ var _ = Describe("Query", func() {
 
 			Context("when the pipe-delimited option is on", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{"pipe-delimited"}
+					ctx.Tag.Options = []string{"pipe-delimited"}
 				})
 
 				It("returns an error", func() {
@@ -104,7 +100,7 @@ var _ = Describe("Query", func() {
 
 			Context("when the deep-object option is on", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{"deep-object"}
+					ctx.Tag.Options = []string{"deep-object"}
 				})
 
 				It("returns an error", func() {
@@ -116,7 +112,7 @@ var _ = Describe("Query", func() {
 
 			Context("when the form option is not provided", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{}
+					ctx.Tag.Options = []string{}
 				})
 
 				It("returns a error", func() {
@@ -128,7 +124,7 @@ var _ = Describe("Query", func() {
 
 			Context("when the simple option is on", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{"simple"}
+					ctx.Tag.Options = []string{"simple"}
 				})
 
 				It("returns an error", func() {
@@ -141,7 +137,7 @@ var _ = Describe("Query", func() {
 
 		Context("when the value is array type", func() {
 			BeforeEach(func() {
-				ctx.FieldKind = reflect.Array
+				ctx.Kind = reflect.Array
 			})
 
 			Context("when the value is empty string", func() {
@@ -155,7 +151,7 @@ var _ = Describe("Query", func() {
 			Context("when the form option is provided", func() {
 				BeforeEach(func() {
 					provider.Query.Add("id", "3,4,5")
-					ctx.Options = []string{"form"}
+					ctx.Tag.Options = []string{"form"}
 				})
 
 				It("returns the value successfully", func() {
@@ -169,7 +165,7 @@ var _ = Describe("Query", func() {
 
 				Context("when the option is unknown", func() {
 					BeforeEach(func() {
-						ctx.Options = []string{"unknown"}
+						ctx.Tag.Options = []string{"unknown"}
 					})
 
 					It("returns the an error", func() {
@@ -185,7 +181,7 @@ var _ = Describe("Query", func() {
 						provider.Query.Add("id", "3")
 						provider.Query.Add("id", "4")
 						provider.Query.Add("id", "5")
-						ctx.Options = []string{"form", "explode"}
+						ctx.Tag.Options = []string{"form", "explode"}
 					})
 
 					It("returns the value successfully", func() {
@@ -202,7 +198,7 @@ var _ = Describe("Query", func() {
 			Context("when the space-delimited option is provided", func() {
 				BeforeEach(func() {
 					provider.Query.Add("id", "3 4 5")
-					ctx.Options = []string{"space-delimited"}
+					ctx.Tag.Options = []string{"space-delimited"}
 				})
 
 				It("returns the value successfully", func() {
@@ -218,7 +214,7 @@ var _ = Describe("Query", func() {
 			Context("when the pipe-delimited option is provided", func() {
 				BeforeEach(func() {
 					provider.Query.Add("id", "3|4|5")
-					ctx.Options = []string{"pipe-delimited"}
+					ctx.Tag.Options = []string{"pipe-delimited"}
 				})
 
 				It("returns the value successfully", func() {
@@ -234,7 +230,7 @@ var _ = Describe("Query", func() {
 			Context("when the deep-object option is provided", func() {
 				BeforeEach(func() {
 					provider.Query.Add("id", "3|4|5")
-					ctx.Options = []string{"deep-object"}
+					ctx.Tag.Options = []string{"deep-object"}
 				})
 
 				It("returns an error", func() {
@@ -247,7 +243,7 @@ var _ = Describe("Query", func() {
 			Context("when the wrong option is provided", func() {
 				BeforeEach(func() {
 					provider.Query.Add("id", "3|4|5")
-					ctx.Options = []string{"wrong"}
+					ctx.Tag.Options = []string{"wrong"}
 				})
 
 				It("returns an error", func() {
@@ -261,8 +257,8 @@ var _ = Describe("Query", func() {
 		Context("when the value is map type", func() {
 			BeforeEach(func() {
 				provider.Query.Add("id", "role,admin,firstName,Alex")
-				ctx.FieldKind = reflect.Map
-				ctx.Options = []string{"form"}
+				ctx.Kind = reflect.Map
+				ctx.Tag.Options = []string{"form"}
 			})
 
 			It("returns the value successfully", func() {
@@ -287,7 +283,7 @@ var _ = Describe("Query", func() {
 
 			Context("when the option is unknown", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{"unknown"}
+					ctx.Tag.Options = []string{"unknown"}
 				})
 
 				It("returns the an error", func() {
@@ -303,7 +299,7 @@ var _ = Describe("Query", func() {
 					provider.Query.Add("role", "admin")
 					provider.Query.Add("firstName", "Alex")
 
-					ctx.Options = append(ctx.Options, "explode")
+					ctx.Tag.Options = append(ctx.Tag.Options, "explode")
 				})
 
 				It("returns the value successfully", func() {
@@ -316,7 +312,7 @@ var _ = Describe("Query", func() {
 
 				Context("when the deep-object option is on", func() {
 					BeforeEach(func() {
-						ctx.Options = []string{"deep-object", "explode"}
+						ctx.Tag.Options = []string{"deep-object", "explode"}
 					})
 
 					It("returns an error", func() {
@@ -332,7 +328,7 @@ var _ = Describe("Query", func() {
 					provider.Query = url.Values{}
 					provider.Query.Add("role", "admin")
 					provider.Query.Add("firstName", "Alex")
-					ctx.Options = []string{}
+					ctx.Tag.Options = []string{}
 				})
 
 				It("returns the value successfully", func() {
@@ -349,7 +345,7 @@ var _ = Describe("Query", func() {
 					provider.Query = url.Values{}
 					provider.Query.Add("id[role][user]", "admin")
 					provider.Query.Add("id[name][first]", "Alex")
-					ctx.Options = []string{"deep-object"}
+					ctx.Tag.Options = []string{"deep-object"}
 				})
 
 				It("returns the value successfully", func() {
@@ -370,12 +366,11 @@ var _ = Describe("Query", func() {
 					BeforeEach(func() {
 						provider.Query = url.Values{}
 						provider.Query.Add("id[role][user", "admin")
-						ctx.Options = []string{"deep-object"}
+						ctx.Tag.Options = []string{"deep-object"}
 					})
 
 					It("returns an error", func() {
 						value, err := provider.Value(ctx)
-						fmt.Println(value)
 						Expect(err).To(MatchError("query: field: 'id' not parsed: query: cannot parse key: [role][user"))
 						Expect(value).To(BeNil())
 					})
@@ -385,12 +380,11 @@ var _ = Describe("Query", func() {
 					BeforeEach(func() {
 						provider.Query = url.Values{}
 						provider.Query.Add("id[role]user]", "admin")
-						ctx.Options = []string{"deep-object"}
+						ctx.Tag.Options = []string{"deep-object"}
 					})
 
 					It("returns an error", func() {
 						value, err := provider.Value(ctx)
-						fmt.Println(value)
 						Expect(err).To(MatchError("query: field: 'id' not parsed: query: cannot parse key: [role]user]"))
 						Expect(value).To(BeNil())
 					})
@@ -400,7 +394,7 @@ var _ = Describe("Query", func() {
 					BeforeEach(func() {
 						provider.Query = url.Values{}
 						provider.Query.Add("id[[role][user]", "admin")
-						ctx.Options = []string{"deep-object"}
+						ctx.Tag.Options = []string{"deep-object"}
 					})
 
 					It("returns an error", func() {
@@ -414,7 +408,7 @@ var _ = Describe("Query", func() {
 					BeforeEach(func() {
 						provider.Query = url.Values{}
 						provider.Query.Add("id]]role][user]", "admin")
-						ctx.Options = []string{"deep-object"}
+						ctx.Tag.Options = []string{"deep-object"}
 					})
 
 					It("returns an error", func() {
@@ -427,7 +421,7 @@ var _ = Describe("Query", func() {
 
 			Context("when the space-delimited option is on", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{"space-delimited"}
+					ctx.Tag.Options = []string{"space-delimited"}
 				})
 
 				It("returns an error", func() {
@@ -439,7 +433,7 @@ var _ = Describe("Query", func() {
 
 			Context("when the pipe-delimited option is on", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{"pipe-delimited"}
+					ctx.Tag.Options = []string{"pipe-delimited"}
 				})
 
 				It("returns an error", func() {
@@ -451,7 +445,7 @@ var _ = Describe("Query", func() {
 
 			Context("when the simple option is on", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{"simple"}
+					ctx.Tag.Options = []string{"simple"}
 				})
 
 				It("returns an error", func() {

@@ -1,4 +1,4 @@
-package reflectify
+package inflate
 
 import (
 	"fmt"
@@ -11,14 +11,17 @@ import (
 // NewHeaderDecoder creates a header decoder
 func NewHeaderDecoder(header http.Header) *Decoder {
 	return &Decoder{
-		Tag: "header",
+		TagName: "path",
+		Converter: &Converter{
+			TagName: "path",
+		},
 		Provider: &HeaderProvider{
 			Header: header,
 		},
 	}
 }
 
-var _ Provider = &HeaderProvider{}
+var _ ValueProvider = &HeaderProvider{}
 
 // HeaderProvider represents a parameter provider that fetches values from
 // incoming request's header
@@ -26,20 +29,13 @@ type HeaderProvider struct {
 	Header http.Header
 }
 
-// New returns a new provider
-func (p *HeaderProvider) New(value reflect.Value) Provider {
-	return &ValueProvider{
-		Var: value,
-	}
-}
-
 // Value returns a primitive value
 func (p *HeaderProvider) Value(ctx *Context) (interface{}, error) {
-	if ctx.Options.IsEmpty() {
-		ctx.Options = append(ctx.Options, OptionSimple.String())
+	if len(ctx.Tag.Options) == 0 {
+		ctx.Tag.AddOption(OptionSimple)
 	}
 
-	switch ctx.FieldKind {
+	switch ctx.Kind {
 	case reflect.Map, reflect.Struct:
 		return p.mapOf(ctx)
 	case reflect.Array, reflect.Slice:
@@ -55,13 +51,13 @@ func (p *HeaderProvider) Value(ctx *Context) (interface{}, error) {
 }
 
 func (p *HeaderProvider) valueOf(ctx *Context) (interface{}, error) {
-	header := p.header(ctx.Field)
+	header := p.header(ctx.Tag.Name)
 
 	if header == nil {
 		return nil, nil
 	}
 
-	if !ctx.Options.Has(OptionSimple) {
+	if !ctx.Tag.HasOption(OptionSimple) {
 		return nil, p.notProvided(ctx, OptionSimple)
 	}
 
@@ -69,13 +65,13 @@ func (p *HeaderProvider) valueOf(ctx *Context) (interface{}, error) {
 }
 
 func (p *HeaderProvider) arrayOf(ctx *Context) ([]interface{}, error) {
-	header := p.header(ctx.Field)
+	header := p.header(ctx.Tag.Name)
 
 	if header == nil {
 		return nil, nil
 	}
 
-	if !ctx.Options.Has(OptionSimple) {
+	if !ctx.Tag.HasOption(OptionSimple) {
 		return nil, p.notProvided(ctx, OptionSimple)
 	}
 
@@ -93,13 +89,13 @@ func (p *HeaderProvider) arrayOf(ctx *Context) ([]interface{}, error) {
 }
 
 func (p *HeaderProvider) mapOf(ctx *Context) (m map[string]interface{}, err error) {
-	header := p.header(ctx.Field)
+	header := p.header(ctx.Tag.Name)
 
 	if header == nil {
 		return nil, nil
 	}
 
-	if !ctx.Options.Has(OptionSimple) {
+	if !ctx.Tag.HasOption(OptionSimple) {
 		return nil, p.notProvided(ctx, OptionSimple)
 	}
 
@@ -108,7 +104,7 @@ func (p *HeaderProvider) mapOf(ctx *Context) (m map[string]interface{}, err erro
 		parts     = strings.Split(*header, separator)
 	)
 
-	if ctx.Options.Has(OptionExplode) {
+	if ctx.Tag.HasOption(OptionExplode) {
 		m, err = explodeMap(parts)
 	} else {
 		m, err = convertMap(parts)
@@ -132,8 +128,8 @@ func (p *HeaderProvider) header(name string) *string {
 	return nil
 }
 
-func (p *HeaderProvider) notProvided(ctx *Context, opts ...Option) error {
-	return p.errorf("field '%v' option: %v not provided", ctx.Field, opts)
+func (p *HeaderProvider) notProvided(ctx *Context, opts ...string) error {
+	return p.errorf("field '%v' option: %v not provided", ctx.Tag.Name, opts)
 }
 
 func (p *HeaderProvider) errorf(msg string, values ...interface{}) error {

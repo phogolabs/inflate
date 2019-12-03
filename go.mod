@@ -1,4 +1,4 @@
-module github.com/phogolabs/reflectify
+module github.com/phogolabs/inflate
 
 go 1.13
 

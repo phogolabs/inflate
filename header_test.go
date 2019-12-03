@@ -1,4 +1,4 @@
-package reflectify_test
+package inflate_test
 
 import (
 	"net/http"
@@ -7,35 +7,32 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/phogolabs/reflectify"
+	"github.com/phogolabs/inflate"
 )
 
 var _ = Describe("Header", func() {
 	var (
-		provider *reflectify.HeaderProvider
-		ctx      *reflectify.Context
+		provider *inflate.HeaderProvider
+		ctx      *inflate.Context
 	)
 
 	BeforeEach(func() {
-		ctx = &reflectify.Context{
+		ctx = &inflate.Context{
 			Field: "X-MyHeader",
+			Tag: &inflate.Tag{
+				Key:  "fake",
+				Name: "X-MyHeader",
+			},
 		}
 
-		provider = &reflectify.HeaderProvider{
+		provider = &inflate.HeaderProvider{
 			Header: http.Header{},
 		}
 	})
 
 	Describe("NewHeaderDecoder", func() {
 		It("creates a new header decoder", func() {
-			decoder := reflectify.NewHeaderDecoder(http.Header{})
-			Expect(decoder).NotTo(BeNil())
-		})
-	})
-
-	Describe("New", func() {
-		It("creates a new cookie decoder", func() {
-			decoder := provider.New(reflect.ValueOf("hello"))
+			decoder := inflate.NewHeaderDecoder(http.Header{})
 			Expect(decoder).NotTo(BeNil())
 		})
 	})
@@ -43,7 +40,7 @@ var _ = Describe("Header", func() {
 	Describe("Value", func() {
 		BeforeEach(func() {
 			provider.Header.Set("X-MyHeader", "5")
-			ctx.Options = []string{"simple"}
+			ctx.Tag.Options = []string{"simple"}
 		})
 
 		Context("when the value is primitive type", func() {
@@ -55,7 +52,7 @@ var _ = Describe("Header", func() {
 
 			Context("when the header is not found", func() {
 				BeforeEach(func() {
-					ctx.Field = "name"
+					ctx.Tag.Name = "name"
 				})
 
 				It("returns a nil value successfully", func() {
@@ -67,7 +64,7 @@ var _ = Describe("Header", func() {
 
 			Context("when the simple option is not provided", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{}
+					ctx.Tag.Options = []string{}
 				})
 
 				It("returns a error", func() {
@@ -79,7 +76,7 @@ var _ = Describe("Header", func() {
 
 			Context("when the unknown option is provided", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{"unknown"}
+					ctx.Tag.Options = []string{"unknown"}
 				})
 
 				It("returns a error", func() {
@@ -93,8 +90,8 @@ var _ = Describe("Header", func() {
 		Context("when the value is array type", func() {
 			BeforeEach(func() {
 				provider.Header.Set("X-MyHeader", "3,4,5")
-				ctx.FieldKind = reflect.Array
-				ctx.Options = []string{"simple"}
+				ctx.Kind = reflect.Array
+				ctx.Tag.Options = []string{"simple"}
 			})
 
 			It("returns the value successfully", func() {
@@ -108,7 +105,7 @@ var _ = Describe("Header", func() {
 
 			Context("when the header is not found", func() {
 				BeforeEach(func() {
-					ctx.Field = "X-TheirHeader"
+					ctx.Tag.Name = "X-TheirHeader"
 				})
 
 				It("returns a nil value successfully", func() {
@@ -120,7 +117,7 @@ var _ = Describe("Header", func() {
 
 			Context("when the simple option is not provided", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{}
+					ctx.Tag.Options = []string{}
 				})
 
 				It("returns a error", func() {
@@ -135,7 +132,7 @@ var _ = Describe("Header", func() {
 
 			Context("when the unknown option is provided", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{"unknown"}
+					ctx.Tag.Options = []string{"unknown"}
 				})
 
 				It("returns a error", func() {
@@ -149,8 +146,8 @@ var _ = Describe("Header", func() {
 		Context("when the value is map type", func() {
 			BeforeEach(func() {
 				provider.Header.Set("X-MyHeader", "role,admin,firstName,Alex")
-				ctx.FieldKind = reflect.Map
-				ctx.Options = []string{"simple"}
+				ctx.Kind = reflect.Map
+				ctx.Tag.Options = []string{"simple"}
 			})
 
 			It("returns the value successfully", func() {
@@ -163,7 +160,7 @@ var _ = Describe("Header", func() {
 
 			Context("when the header is not found", func() {
 				BeforeEach(func() {
-					ctx.Field = "X-TheirHeader"
+					ctx.Tag.Name = "X-TheirHeader"
 				})
 
 				It("returns a nil value successfully", func() {
@@ -187,7 +184,7 @@ var _ = Describe("Header", func() {
 
 			Context("when the simple option is not provided", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{}
+					ctx.Tag.Options = []string{}
 				})
 
 				It("returns a error", func() {
@@ -201,7 +198,7 @@ var _ = Describe("Header", func() {
 
 			Context("when the unknown option is provided", func() {
 				BeforeEach(func() {
-					ctx.Options = []string{"unknown"}
+					ctx.Tag.Options = []string{"unknown"}
 				})
 
 				It("returns a error", func() {
@@ -214,7 +211,7 @@ var _ = Describe("Header", func() {
 			Context("when the explode option is available", func() {
 				BeforeEach(func() {
 					provider.Header.Set("X-MyHeader", "role=admin,firstName=Alex")
-					ctx.Options = []string{"simple", "explode"}
+					ctx.Tag.Options = []string{"simple", "explode"}
 				})
 
 				It("returns the value successfully", func() {
@@ -227,7 +224,7 @@ var _ = Describe("Header", func() {
 
 				Context("when the header is not found", func() {
 					BeforeEach(func() {
-						ctx.Field = "X-TheirHeader"
+						ctx.Tag.Name = "X-TheirHeader"
 					})
 
 					It("returns a nil value successfully", func() {
@@ -264,7 +261,7 @@ var _ = Describe("Header", func() {
 				Context("when the simple option is not provided", func() {
 					BeforeEach(func() {
 						provider.Header.Set("X-MyHeader", "role=admin,firstName=Alex")
-						ctx.Options = []string{"explode"}
+						ctx.Tag.Options = []string{"explode"}
 					})
 
 					It("returns a error", func() {
