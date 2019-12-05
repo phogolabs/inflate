@@ -61,8 +61,8 @@ if err := inflate.SetDefault(account); err != nil {
 }
 ```
 
-The package supports support serialization of parameters based on [OpenAPI spec](https://swagger.io/docs/specification/serialization/).
-For more advanced examples, please do see the online documentation.
+The package supports serialization of parameters in [OpenAPI spec](https://swagger.io/docs/specification/serialization/) format.
+For more advanced examples, please see the online documentation.
 
 ## Contributing
 
