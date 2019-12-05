@@ -135,6 +135,10 @@ func (p *DefaultProvider) Value(ctx *Context) (interface{}, error) {
 
 	value := ctx.Tag.Name
 
+	if canUnmarshalText(ctx.Type) {
+		return value, nil
+	}
+
 	switch ctx.Type.Kind() {
 	case reflect.Map, reflect.Struct:
 		kv := make(map[string]interface{})
