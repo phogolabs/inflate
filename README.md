@@ -9,11 +9,17 @@ A Golang reflection package on steroids
 
 ## Motivation
 
-There are a lot of package that supports data type conversions but neither of
+There are many packages that supports data type conversions but neither of
 them have good support for extensibility and handling different scenarios. The
 purpose of this library is to cover cases in which we want to make
 data manipulations based on specific needs. The library works in greedy manner
 by trying to convert as much as it can values from one type to another.
+
+Thanks for the inspiration to the contributors of the following projects:
+
+- [mapstructure](https://github.com/mitchellh/mapstructure)
+- [defaults](https://github.com/creasty/defaults)
+- [copier](https://github.com/jinzhu/copier)
 
 ## Installation
 
