@@ -9,11 +9,16 @@ A Golang reflection package on steroids
 
 ## Motivation
 
-The project is motivated from the fact that there are no packages that do that
-conversion of OpenAPI parameters serialization format. The library works in
-greedy manner. It tries to convert incompatible values as much as it can.
+The project is motivated from the fact that there are no packages that
+convert values based on different criteria:
 
-Thanks for the inspiration to the contributors of the following projects:
+- Convert values based on OpenAPI parameters serialization format
+- Sets the default value defined by tag attribute
+- Sets the structure fields from another structure or map by using tag attribute
+
+The library works in greedy manner. It tries to convert incompatible values as
+much as it can. Thanks for the inspiration to the contributors of the following
+projects:
 
 - [mapstructure](https://github.com/mitchellh/mapstructure)
 - [defaults](https://github.com/creasty/defaults)
