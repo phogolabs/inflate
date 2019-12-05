@@ -26,7 +26,7 @@ var _ = Describe("Cookie", func() {
 		}
 
 		provider = &inflate.CookieProvider{
-			[]*http.Cookie{&http.Cookie{Name: "id"}},
+			[]*http.Cookie{{Name: "id"}},
 		}
 	})
 
