@@ -1,7 +1,10 @@
-package inflate
+package inflate_test
 
 import (
+	"fmt"
+
 	"github.com/go-chi/chi"
+	"github.com/phogolabs/inflate"
 )
 
 func ExampleDecoder_path() {
@@ -15,9 +18,11 @@ func ExampleDecoder_path() {
 
 	member := &Member{}
 
-	if err := NewPathDecoder(param).Decode(member); err != nil {
+	if err := inflate.NewPathDecoder(param).Decode(member); err != nil {
 		panic(err)
 	}
+
+	fmt.Printf("%+v", member)
 
 	// Output:
 	// &{ID:123456}

@@ -1,7 +1,10 @@
-package inflate
+package inflate_test
 
 import (
+	"fmt"
 	"net/http"
+
+	"github.com/phogolabs/inflate"
 )
 
 func ExampleDecoder_cookie() {
@@ -15,9 +18,11 @@ func ExampleDecoder_cookie() {
 
 	session := &Session{}
 
-	if err := NewCookieDecoder(cookies).Decode(session); err != nil {
+	if err := inflate.NewCookieDecoder(cookies).Decode(session); err != nil {
 		panic(err)
 	}
+
+	fmt.Printf("%+v", session)
 
 	// Output:
 	// &{Token:123456}

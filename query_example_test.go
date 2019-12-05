@@ -1,7 +1,10 @@
 package inflate_test
 
 import (
+	"fmt"
 	"net/url"
+
+	"github.com/phogolabs/inflate"
 )
 
 func ExampleDecoder_query() {
@@ -17,9 +20,11 @@ func ExampleDecoder_query() {
 
 	user := &User{}
 
-	if err := NewQueryDecoder(query).Decode(user); err != nil {
+	if err := inflate.NewQueryDecoder(query).Decode(user); err != nil {
 		panic(err)
 	}
+
+	fmt.Printf("%+v", user)
 
 	// Output:
 	// &{ID:1 Name:Jack}

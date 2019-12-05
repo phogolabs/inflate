@@ -1,7 +1,10 @@
-package inflate
+package inflate_test
 
 import (
+	"fmt"
 	"net/http"
+
+	"github.com/phogolabs/inflate"
 )
 
 func ExampleDecoder_header() {
@@ -14,9 +17,11 @@ func ExampleDecoder_header() {
 
 	tag := &Tag{}
 
-	if err := NewHeaderDecoder(header).Decode(tag); err != nil {
+	if err := inflate.NewHeaderDecoder(header).Decode(tag); err != nil {
 		panic(err)
 	}
+
+	fmt.Printf("%+v", tag)
 
 	// Output:
 	// &{RequestID:123456}
