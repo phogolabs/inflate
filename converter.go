@@ -248,17 +248,16 @@ func (d *Converter) convertStructFromMap(source *Map, target *Struct) error {
 				obj := StructOf(d.TagName, value)
 
 				if err := d.convertStructFromMap(source, obj); err != nil {
-					return err
+					return d.errorf(field.Name, err)
 				}
 			case reflect.Map:
 				obj := MapOf(d.TagName, value)
 
 				if err := d.convertMapFromMap(source, obj); err != nil {
-					return err
+					return d.errorf(field.Name, err)
 				}
 			default:
-				return d.error(source.Value, target.Value,
-					fmt.Errorf("%s cannot be nested", field.Name))
+				return d.errorf(field.Name, d.error(source.Value, target.Value, nil))
 			}
 
 			set(field.Value, value.Addr())
@@ -334,7 +333,7 @@ func (d *Converter) convertMapFromMap(source *Map, target *Map) error {
 		)
 
 		if err := d.convert(elem(item), converted); err != nil {
-			return err
+			return d.errorf(fmt.Sprintf("%v", iter.Key().Interface()), err)
 		}
 
 		if !converted.IsZero() {
@@ -506,4 +505,8 @@ func (d *Converter) error(source, target reflect.Value, err error) error {
 	}
 
 	return fmt.Errorf(buffer.String())
+}
+
+func (d *Converter) errorf(name string, msg interface{}) error {
+	return fmt.Errorf("%v: %v", name, msg)
 }
