@@ -9,11 +9,9 @@ A Golang reflection package on steroids
 
 ## Motivation
 
-There are many packages that supports data type conversions but neither of
-them have good support for extensibility and handling different scenarios. The
-purpose of this library is to cover cases in which we want to make
-data manipulations based on specific needs. The library works in greedy manner
-by trying to convert as much as it can values from one type to another.
+The project is motivated from the fact that there are no packages that do that
+conversion of OpenAPI parameters serialization format. The library works in
+greedy manner. It tries to convert incompatible values as much as it can.
 
 Thanks for the inspiration to the contributors of the following projects:
 
@@ -28,6 +26,8 @@ $ go get -u github.com/phogolabs/inflate
 ```
 
 ## Usage
+
+The basic usage of the package gives some handy features.
 
 If you want to convert a value from one type to another, you can use the
 following function:
