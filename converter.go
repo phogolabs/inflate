@@ -87,9 +87,9 @@ func (d *Converter) convertToString(source, target reflect.Value) error {
 	case reflect.String:
 		target.SetString(source.String())
 	default:
-		data, ok, err := d.marshalText(source)
+		data, ok, err := d.textMarshal(source)
 		if ok && err == nil {
-			target.SetString(string(data))
+			target.SetString(data)
 			return nil
 		}
 
@@ -217,7 +217,7 @@ func (d *Converter) convertToFloat(source, target reflect.Value) error {
 func (d *Converter) convertToStruct(source, target reflect.Value) error {
 	switch source.Kind() {
 	case reflect.String:
-		ok, err := d.unmarshalText(target, []byte(source.String()))
+		ok, err := d.textUnmarshal(source.String(), target)
 		if ok && err == nil {
 			return nil
 		}
@@ -301,7 +301,7 @@ func (d *Converter) convertToMap(source, target reflect.Value) error {
 			MapOf(d.TagName, target),
 		)
 	case reflect.String:
-		ok, err := d.unmarshalText(target, []byte(source.String()))
+		ok, err := d.textUnmarshal(source.String(), target)
 		if ok && err == nil {
 			return nil
 		}
@@ -347,7 +347,7 @@ func (d *Converter) convertMapFromMap(source *Map, target *Map) error {
 func (d *Converter) convertToArray(source, target reflect.Value) error {
 	switch source.Kind() {
 	case reflect.String:
-		if ok, err := d.unmarshalText(target, []byte(source.String())); ok {
+		if ok, err := d.textUnmarshal(source.String(), target); ok {
 			if err != nil {
 				return d.error(source, target, err)
 			}
@@ -456,7 +456,7 @@ func (d *Converter) convertToBasic(source, target reflect.Value) error {
 	return d.error(source, target, nil)
 }
 
-func (d *Converter) marshalText(source reflect.Value) ([]byte, bool, error) {
+func (d *Converter) textMarshal(source reflect.Value) (string, bool, error) {
 	targetType := reflect.TypeOf(new(encoding.TextMarshaler)).Elem()
 
 	if source.Type().Implements(targetType) {
@@ -465,13 +465,13 @@ func (d *Converter) marshalText(source reflect.Value) ([]byte, bool, error) {
 			data, err = encoder.MarshalText()
 		)
 
-		return data, true, err
+		return string(data), true, err
 	}
 
-	return nil, false, nil
+	return "", false, nil
 }
 
-func (d *Converter) unmarshalText(target reflect.Value, data []byte) (bool, error) {
+func (d *Converter) textUnmarshal(data string, target reflect.Value) (bool, error) {
 	targetType := reflect.TypeOf(new(encoding.TextUnmarshaler)).Elem()
 
 	if target.Kind() != reflect.Ptr {
@@ -483,7 +483,7 @@ func (d *Converter) unmarshalText(target reflect.Value, data []byte) (bool, erro
 	if target.Type().Implements(targetType) {
 		var (
 			decoder = target.Interface().(encoding.TextUnmarshaler)
-			err     = decoder.UnmarshalText(data)
+			err     = decoder.UnmarshalText([]byte(data))
 		)
 
 		return true, err
