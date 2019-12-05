@@ -31,7 +31,7 @@ func (p *CookieProvider) Value(ctx *Context) (interface{}, error) {
 	if len(ctx.Tag.Options) == 0 {
 		ctx.Tag.AddOption(OptionForm)
 
-		switch ctx.Kind {
+		switch ctx.Type.Kind() {
 		case reflect.Map, reflect.Struct:
 		case reflect.Array, reflect.Slice:
 		default:
@@ -39,7 +39,11 @@ func (p *CookieProvider) Value(ctx *Context) (interface{}, error) {
 		}
 	}
 
-	switch ctx.Kind {
+	if canUnmarshalText(ctx.Type) {
+		return p.valueOf(ctx)
+	}
+
+	switch ctx.Type.Kind() {
 	case reflect.Map, reflect.Struct:
 		return p.mapOf(ctx)
 	case reflect.Array, reflect.Slice:

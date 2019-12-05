@@ -27,7 +27,7 @@ const (
 // Context is the context
 type Context struct {
 	Field  string
-	Kind   reflect.Kind
+	Type   reflect.Type
 	IsZero bool
 	Tag    *Tag
 }
@@ -81,7 +81,7 @@ func (d *Decoder) decode(ch *Struct) error {
 		ctx := &Context{
 			Field:  field.Name,
 			Tag:    field.Tag,
-			Kind:   elem(field.Value).Kind(),
+			Type:   elem(field.Value).Type(),
 			IsZero: field.Value.IsZero(),
 		}
 
@@ -135,7 +135,7 @@ func (p *DefaultProvider) Value(ctx *Context) (interface{}, error) {
 
 	value := ctx.Tag.Name
 
-	switch ctx.Kind {
+	switch ctx.Type.Kind() {
 	case reflect.Map, reflect.Struct:
 		kv := make(map[string]interface{})
 

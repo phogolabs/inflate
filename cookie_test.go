@@ -19,6 +19,7 @@ var _ = Describe("Cookie", func() {
 	BeforeEach(func() {
 		ctx = &inflate.Context{
 			Field: "id",
+			Type:  reflect.TypeOf(""),
 			Tag: &inflate.Tag{
 				Key:  "fake",
 				Name: "id",
@@ -80,7 +81,7 @@ var _ = Describe("Cookie", func() {
 		Context("when the value is array type", func() {
 			BeforeEach(func() {
 				provider.Cookies[0].Value = "3,4,5"
-				ctx.Kind = reflect.Array
+				ctx.Type = reflect.TypeOf([]interface{}{})
 				ctx.Tag.Options = []string{"form"}
 			})
 
@@ -148,7 +149,7 @@ var _ = Describe("Cookie", func() {
 		Context("when the value is map type", func() {
 			BeforeEach(func() {
 				provider.Cookies[0].Value = "role,admin,firstName,Alex"
-				ctx.Kind = reflect.Map
+				ctx.Type = reflect.TypeOf(make(map[string]interface{}))
 				ctx.Tag.Options = []string{"form"}
 			})
 

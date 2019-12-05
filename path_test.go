@@ -19,6 +19,7 @@ var _ = Describe("Path", func() {
 	BeforeEach(func() {
 		ctx = &inflate.Context{
 			Field: "id",
+			Type:  reflect.TypeOf(""),
 			Tag: &inflate.Tag{
 				Key:  "fake",
 				Name: "id",
@@ -40,7 +41,7 @@ var _ = Describe("Path", func() {
 	Describe("Value", func() {
 		Context("when the value is primitive type", func() {
 			BeforeEach(func() {
-				ctx.Kind = reflect.String
+				ctx.Type = reflect.TypeOf("")
 			})
 
 			Context("when simple option is on", func() {
@@ -149,7 +150,7 @@ var _ = Describe("Path", func() {
 
 		Context("when the value is array type", func() {
 			BeforeEach(func() {
-				ctx.Kind = reflect.Array
+				ctx.Type = reflect.TypeOf([]interface{}{})
 			})
 
 			Context("when the option is unknown", func() {
@@ -314,7 +315,7 @@ var _ = Describe("Path", func() {
 
 		Context("when the value is map type", func() {
 			BeforeEach(func() {
-				ctx.Kind = reflect.Map
+				ctx.Type = reflect.TypeOf(make(map[string]interface{}))
 			})
 
 			Context("when the option is unknown", func() {

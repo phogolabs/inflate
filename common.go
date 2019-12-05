@@ -1,6 +1,7 @@
 package inflate
 
 import (
+	"encoding"
 	"fmt"
 	"reflect"
 	"strings"
@@ -354,6 +355,16 @@ func check(name string, value interface{}) error {
 	}
 
 	return nil
+}
+
+func canUnmarshalText(target reflect.Type) bool {
+	targetType := reflect.TypeOf(new(encoding.TextUnmarshaler)).Elem()
+
+	if target.Kind() != reflect.Ptr {
+		target = reflect.PtrTo(target)
+	}
+
+	return target.Implements(targetType)
 }
 
 func convertMap(parts []string) (map[string]interface{}, error) {

@@ -19,6 +19,7 @@ var _ = Describe("Header", func() {
 	BeforeEach(func() {
 		ctx = &inflate.Context{
 			Field: "X-MyHeader",
+			Type:  reflect.TypeOf(""),
 			Tag: &inflate.Tag{
 				Key:  "fake",
 				Name: "X-MyHeader",
@@ -90,7 +91,7 @@ var _ = Describe("Header", func() {
 		Context("when the value is array type", func() {
 			BeforeEach(func() {
 				provider.Header.Set("X-MyHeader", "3,4,5")
-				ctx.Kind = reflect.Array
+				ctx.Type = reflect.TypeOf([]interface{}{})
 				ctx.Tag.Options = []string{"simple"}
 			})
 
@@ -146,7 +147,7 @@ var _ = Describe("Header", func() {
 		Context("when the value is map type", func() {
 			BeforeEach(func() {
 				provider.Header.Set("X-MyHeader", "role,admin,firstName,Alex")
-				ctx.Kind = reflect.Map
+				ctx.Type = reflect.TypeOf(make(map[string]interface{}))
 				ctx.Tag.Options = []string{"simple"}
 			})
 

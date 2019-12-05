@@ -50,7 +50,11 @@ func (p *QueryProvider) Value(ctx *Context) (interface{}, error) {
 		ctx.Tag.AddOption(OptionExplode)
 	}
 
-	switch ctx.Kind {
+	if canUnmarshalText(ctx.Type) {
+		return p.valueOf(ctx)
+	}
+
+	switch ctx.Type.Kind() {
 	case reflect.Map, reflect.Struct:
 		return p.mapOf(ctx)
 	case reflect.Array, reflect.Slice:
