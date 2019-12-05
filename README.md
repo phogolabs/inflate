@@ -63,10 +63,9 @@ if err := inflate.SetDefault(account); err != nil {
 
 There are another more complex cases. A good example for that is an Open API
 specification. The package supports support serialization of parameters based
-on [OpenAPI spec](https://swagger.io/docs/specification/serialization/).
-
-Let's assume that we have an incoming http request `r`. We will decode the
-following structure based on OpenAPI requirements:
+on [OpenAPI spec](https://swagger.io/docs/specification/serialization/). Let's
+assume that we have an incoming http request `r`. We will decode the following
+structure based on OpenAPI standards:
 
 ```golang
 type Input struct {
