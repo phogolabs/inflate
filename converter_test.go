@@ -2,6 +2,7 @@ package inflate_test
 
 import (
 	"bytes"
+	"database/sql"
 	"fmt"
 	"io"
 	"time"
@@ -130,7 +131,7 @@ var _ = Describe("Converter", func() {
 					})
 
 					It("returns an error", func() {
-						Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert struct '{Value:John Error:oh no}' to string: oh no"))
+						Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert struct '{Value:John Error:oh no}' to string"))
 						Expect(target).To(BeEmpty())
 					})
 				})
@@ -1045,4 +1046,73 @@ var _ = Describe("Converter", func() {
 			Expect(target.Map).NotTo(BeNil())
 		})
 	})
+
+	Context("when the target field is a SQL type", func() {
+		Describe("", func() {
+			var target Row
+
+			BeforeEach(func() {
+				target = Row{}
+			})
+
+			Context("when the source is integer", func() {
+				var source map[string]interface{}
+
+				BeforeEach(func() {
+					source = make(map[string]interface{})
+					source["result"] = 10
+				})
+
+				It("converts the value successfully", func() {
+					Expect(converter.Convert(&source, &target)).To(Succeed())
+					Expect(target.Result.Int64).To(Equal(int64(10)))
+				})
+
+				Context("when the value cannot be converted", func() {
+					BeforeEach(func() {
+						source = make(map[string]interface{})
+						source["result"] = "unknown"
+					})
+
+					It("returns an error", func() {
+						Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string 'unknown' to struct"))
+					})
+				})
+			})
+		})
+
+		Context("when the target is integer", func() {
+			var target RowInt
+
+			BeforeEach(func() {
+				target = RowInt{}
+			})
+
+			Context("when the source is integer", func() {
+				var source map[string]interface{}
+
+				BeforeEach(func() {
+					source = make(map[string]interface{})
+					source["result"] = sql.NullInt64{Int64: 10, Valid: true}
+				})
+
+				It("converts the value successfully", func() {
+					Expect(converter.Convert(&source, &target)).To(Succeed())
+					Expect(target.Result).To(Equal(int64(10)))
+				})
+
+				Context("when the value cannot be converted", func() {
+					BeforeEach(func() {
+						source = make(map[string]interface{})
+						source["result"] = "unknown"
+					})
+
+					It("returns an error", func() {
+						Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string 'unknown' to int: strconv.ParseInt: parsing \"unknown\": invalid syntax"))
+					})
+				})
+			})
+		})
+	})
+
 })

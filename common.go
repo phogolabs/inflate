@@ -67,7 +67,7 @@ func (s *Struct) tree(ch *Struct, kv map[string]interface{}) {
 		if field.Tag.Name == "~" {
 			value := elem(field.Value)
 
-			if value.Kind() == reflect.Struct {
+			if kind(value) == reflect.Struct {
 				s.tree(StructOf(s.TagName, value), kv)
 			}
 
@@ -179,9 +179,7 @@ func (f *Field) IsZero() bool {
 func (f *Field) Struct() *Struct {
 	value := elem(f.Value)
 
-	fmt.Println(value.Kind())
-
-	if value.Kind() != reflect.Struct {
+	if kind(value) != reflect.Struct {
 		return nil
 	}
 
@@ -193,7 +191,7 @@ func (f *Field) Struct() *Struct {
 
 // Map return the struct as map
 func (f *Field) Map() *Map {
-	if f.Value.Kind() != reflect.Map {
+	if kind(f.Value) != reflect.Map {
 		return nil
 	}
 
@@ -205,7 +203,7 @@ func (f *Field) Map() *Map {
 
 // Array returns the struct as map
 func (f *Field) Array() *Array {
-	switch f.Value.Kind() {
+	switch kind(f.Value) {
 	case reflect.Array, reflect.Slice:
 		return &Array{
 			TagName: f.Tag.Key,

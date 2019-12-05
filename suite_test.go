@@ -1,6 +1,7 @@
 package inflate_test
 
 import (
+	"database/sql"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -28,6 +29,14 @@ type Nested struct {
 	ID   string                 `fake:"id"`
 	User *User                  `fake:"~"`
 	Map  map[string]interface{} `fake:"~"`
+}
+
+type Row struct {
+	Result sql.NullInt64 `fake:"result"`
+}
+
+type RowInt struct {
+	Result int64 `fake:"result"`
 }
 
 type Text struct {

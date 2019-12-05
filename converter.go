@@ -2,6 +2,8 @@ package inflate
 
 import (
 	"bytes"
+	"database/sql"
+	"database/sql/driver"
 	"encoding"
 	"fmt"
 	"reflect"
@@ -40,7 +42,7 @@ func (d *Converter) convert(source, target reflect.Value) (err error) {
 		return nil
 	}
 
-	switch target.Kind() {
+	switch kind(target) {
 	case reflect.String:
 		err = d.convertToString(source, target)
 	case reflect.Bool:
@@ -71,7 +73,7 @@ func (d *Converter) convert(source, target reflect.Value) (err error) {
 }
 
 func (d *Converter) convertToString(source, target reflect.Value) error {
-	switch source.Kind() {
+	switch kind(source) {
 	case reflect.Bool:
 		if source.Bool() {
 			target.SetString("1")
@@ -93,6 +95,12 @@ func (d *Converter) convertToString(source, target reflect.Value) error {
 			return nil
 		}
 
+		value, ok, err := d.valueRead(source)
+		if ok && err == nil {
+			source = elem(reflect.ValueOf(value))
+			return d.convertToString(source, target)
+		}
+
 		return d.error(source, target, err)
 	}
 
@@ -100,7 +108,7 @@ func (d *Converter) convertToString(source, target reflect.Value) error {
 }
 
 func (d *Converter) convertToBool(source, target reflect.Value) error {
-	switch source.Kind() {
+	switch kind(source) {
 	case reflect.Bool:
 		target.SetBool(source.Bool())
 	case reflect.Int:
@@ -120,6 +128,14 @@ func (d *Converter) convertToBool(source, target reflect.Value) error {
 		default:
 			return d.error(source, target, err)
 		}
+	case reflect.Struct:
+		value, ok, err := d.valueRead(source)
+		if ok && err == nil {
+			source = elem(reflect.ValueOf(value))
+			return d.convertToBool(source, target)
+		}
+
+		return d.error(source, target, err)
 	default:
 		return d.error(source, target, nil)
 	}
@@ -128,7 +144,7 @@ func (d *Converter) convertToBool(source, target reflect.Value) error {
 }
 
 func (d *Converter) convertToInt(source, target reflect.Value) error {
-	switch source.Kind() {
+	switch kind(source) {
 	case reflect.Int:
 		target.SetInt(source.Int())
 	case reflect.Uint:
@@ -149,6 +165,15 @@ func (d *Converter) convertToInt(source, target reflect.Value) error {
 		}
 
 		target.SetInt(value)
+	case reflect.Struct:
+		value, ok, err := d.valueRead(source)
+		if ok && err == nil {
+
+			source = elem(reflect.ValueOf(value))
+			return d.convertToInt(source, target)
+		}
+
+		return d.error(source, target, err)
 	default:
 		return d.error(source, target, nil)
 	}
@@ -157,7 +182,7 @@ func (d *Converter) convertToInt(source, target reflect.Value) error {
 }
 
 func (d *Converter) convertToUint(source, target reflect.Value) error {
-	switch source.Kind() {
+	switch kind(source) {
 	case reflect.Int:
 		target.SetUint(uint64(source.Int()))
 	case reflect.Uint:
@@ -178,6 +203,14 @@ func (d *Converter) convertToUint(source, target reflect.Value) error {
 		}
 
 		target.SetUint(value)
+	case reflect.Struct:
+		value, ok, err := d.valueRead(source)
+		if ok && err == nil {
+			source = elem(reflect.ValueOf(value))
+			return d.convertToUint(source, target)
+		}
+
+		return d.error(source, target, err)
 	default:
 		return d.error(source, target, nil)
 	}
@@ -186,7 +219,7 @@ func (d *Converter) convertToUint(source, target reflect.Value) error {
 }
 
 func (d *Converter) convertToFloat(source, target reflect.Value) error {
-	switch source.Kind() {
+	switch kind(source) {
 	case reflect.Int:
 		target.SetFloat(float64(source.Int()))
 	case reflect.Uint:
@@ -207,6 +240,14 @@ func (d *Converter) convertToFloat(source, target reflect.Value) error {
 		}
 
 		target.SetFloat(value)
+	case reflect.Struct:
+		value, ok, err := d.valueRead(source)
+		if ok && err == nil {
+			source = elem(reflect.ValueOf(value))
+			return d.convertToFloat(source, target)
+		}
+
+		return d.error(source, target, err)
 	default:
 		return d.error(source, target, nil)
 	}
@@ -215,7 +256,7 @@ func (d *Converter) convertToFloat(source, target reflect.Value) error {
 }
 
 func (d *Converter) convertToStruct(source, target reflect.Value) error {
-	switch source.Kind() {
+	switch kind(source) {
 	case reflect.String:
 		ok, err := d.textUnmarshal(source.String(), target)
 		if ok && err == nil {
@@ -234,7 +275,12 @@ func (d *Converter) convertToStruct(source, target reflect.Value) error {
 			StructOf(d.TagName, target),
 		)
 	default:
-		return d.error(source, target, nil)
+		ok, err := d.valueScan(source.Interface(), target)
+		if ok && err == nil {
+			return nil
+		}
+
+		return d.error(source, target, err)
 	}
 }
 
@@ -243,7 +289,7 @@ func (d *Converter) convertStructFromMap(source *Map, target *Struct) error {
 		if field.Tag.Name == "~" {
 			value := create(field.Value.Type())
 
-			switch value.Kind() {
+			switch kind(value) {
 			case reflect.Struct:
 				obj := StructOf(d.TagName, value)
 
@@ -289,7 +335,7 @@ func (d *Converter) convertStructFromMap(source *Map, target *Struct) error {
 }
 
 func (d *Converter) convertToMap(source, target reflect.Value) error {
-	switch source.Kind() {
+	switch kind(source) {
 	case reflect.Map:
 		return d.convertMapFromMap(
 			MapOf(d.TagName, source),
@@ -345,7 +391,7 @@ func (d *Converter) convertMapFromMap(source *Map, target *Map) error {
 }
 
 func (d *Converter) convertToArray(source, target reflect.Value) error {
-	switch source.Kind() {
+	switch kind(source) {
 	case reflect.String:
 		if ok, err := d.textUnmarshal(source.String(), target); ok {
 			if err != nil {
@@ -389,7 +435,7 @@ func (d *Converter) convertArrayFromArray(source *Array, target *Array) error {
 		}
 
 		if !converted.IsZero() {
-			switch target.Value.Kind() {
+			switch kind(target.Value) {
 			case reflect.Array:
 				if index >= target.Value.Len() {
 					return nil
@@ -474,7 +520,7 @@ func (d *Converter) textMarshal(source reflect.Value) (string, bool, error) {
 func (d *Converter) textUnmarshal(data string, target reflect.Value) (bool, error) {
 	targetType := reflect.TypeOf(new(encoding.TextUnmarshaler)).Elem()
 
-	if target.Kind() != reflect.Ptr {
+	if kind(target) != reflect.Ptr {
 		if target.CanAddr() {
 			target = target.Addr()
 		}
@@ -492,13 +538,50 @@ func (d *Converter) textUnmarshal(data string, target reflect.Value) (bool, erro
 	return false, nil
 }
 
+func (d *Converter) valueRead(source reflect.Value) (interface{}, bool, error) {
+	targetType := reflect.TypeOf(new(driver.Valuer)).Elem()
+
+	if source.Type().Implements(targetType) {
+		var (
+			valuer    = source.Interface().(driver.Valuer)
+			data, err = valuer.Value()
+		)
+
+		return data, true, err
+	}
+
+	return "", false, nil
+}
+
+func (d *Converter) valueScan(value interface{}, target reflect.Value) (bool, error) {
+	targetType := reflect.TypeOf(new(sql.Scanner)).Elem()
+
+	if kind(target) != reflect.Ptr {
+		if target.CanAddr() {
+			target = target.Addr()
+		}
+	}
+
+	if target.Type().Implements(targetType) {
+		var (
+			scanner = target.Interface().(sql.Scanner)
+			err     = scanner.Scan(value)
+		)
+
+		return true, err
+	}
+
+	return false, nil
+}
+
 func (d *Converter) error(source, target reflect.Value, err error) error {
 	buffer := &bytes.Buffer{}
 
 	fmt.Fprintf(buffer, "cannot convert %v '%+v' to %v",
-		source.Kind(),
+		kind(source),
 		source.Interface(),
-		target.Kind())
+		kind(target),
+	)
 
 	if err != nil {
 		return fmt.Errorf("%s: %w", buffer.String(), err)
