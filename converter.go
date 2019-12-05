@@ -14,36 +14,18 @@ type Converter struct {
 }
 
 // Convert converts a value to another value
-func (d *Converter) Convert(source, target interface{}) error {
-	var (
-		sourceValue reflect.Value
-		targetValue reflect.Value
-	)
-
-	if value, ok := source.(reflect.Value); ok {
-		sourceValue = value
-	} else {
-		if err := check("source", source); err != nil {
-			return err
-		}
-
-		sourceValue = elem(reflect.ValueOf(source))
+func (d *Converter) Convert(from, to interface{}) error {
+	source, err := check("source", from)
+	if err != nil {
+		return err
 	}
 
-	if value, ok := target.(reflect.Value); ok {
-		targetValue = value
-	} else {
-		if err := check("target", target); err != nil {
-			return err
-		}
-
-		targetValue = elem(reflect.ValueOf(target))
+	target, err := check("target", to)
+	if err != nil {
+		return err
 	}
 
-	return d.convert(
-		sourceValue,
-		targetValue,
-	)
+	return d.convert(source, target)
 }
 
 func (d *Converter) convert(source, target reflect.Value) (err error) {

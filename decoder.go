@@ -54,13 +54,13 @@ type Decoder struct {
 }
 
 // Decode decodes the values to given target
-func (d *Decoder) Decode(obj interface{}) error {
-	if err := check("target", obj); err != nil {
+func (d *Decoder) Decode(value interface{}) error {
+	target, err := check("target", value)
+	if err != nil {
 		return err
 	}
 
-	target := StructOf(d.TagName, reflect.ValueOf(obj).Elem())
-	return d.decode(target)
+	return d.decode(StructOf(d.TagName, target))
 }
 
 func (d *Decoder) decode(ch *Struct) error {

@@ -343,18 +343,24 @@ func set(target reflect.Value, value reflect.Value) {
 	}
 }
 
-func check(name string, value interface{}) error {
-	field := reflect.ValueOf(value)
+func check(name string, value interface{}) (reflect.Value, error) {
+	field, ok := value.(reflect.Value)
+
+	if ok {
+		return field, nil
+	}
+
+	field = reflect.ValueOf(value)
 
 	if field.Kind() != reflect.Ptr {
-		return fmt.Errorf("the %v must be a pointer", name)
+		return reflect.Value{}, fmt.Errorf("the %v must be a pointer", name)
 	}
 
 	if elem := field.Elem(); !elem.CanAddr() {
-		return fmt.Errorf("the %v must be addressable (a pointer)", name)
+		return reflect.Value{}, fmt.Errorf("the %v must be addressable (a pointer)", name)
 	}
 
-	return nil
+	return elem(field), nil
 }
 
 func canUnmarshalText(target reflect.Type) bool {
