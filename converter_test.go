@@ -108,7 +108,7 @@ var _ = Describe("Converter", func() {
 		Context("when the source value is struct", func() {
 			It("returns an error", func() {
 				source := struct{}{}
-				Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert struct value {} to type string"))
+				Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert struct '{}' to string"))
 				Expect(target).To(BeEmpty())
 			})
 
@@ -130,7 +130,7 @@ var _ = Describe("Converter", func() {
 					})
 
 					It("returns an error", func() {
-						Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert struct value {Value:John Error:oh no} to type string: oh no"))
+						Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert struct '{Value:John Error:oh no}' to string: oh no"))
 						Expect(target).To(BeEmpty())
 					})
 				})
@@ -174,7 +174,7 @@ var _ = Describe("Converter", func() {
 				})
 
 				It("returns an error", func() {
-					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string value unknonw to type bool: strconv.ParseBool: parsing \"unknonw\": invalid syntax"))
+					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string 'unknonw' to bool: strconv.ParseBool: parsing \"unknonw\": invalid syntax"))
 					Expect(target).To(BeFalse())
 				})
 			})
@@ -246,7 +246,7 @@ var _ = Describe("Converter", func() {
 		Context("when the source value is struct", func() {
 			It("returns an error", func() {
 				source := struct{}{}
-				Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert struct value {} to type bool"))
+				Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert struct '{}' to bool"))
 				Expect(target).To(BeFalse())
 			})
 		})
@@ -276,7 +276,7 @@ var _ = Describe("Converter", func() {
 					})
 
 					It("returns an error", func() {
-						Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string value unknown to type int: strconv.ParseInt: parsing \"unknown\": invalid syntax"))
+						Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string 'unknown' to int: strconv.ParseInt: parsing \"unknown\": invalid syntax"))
 						Expect(target).To(Equal(0))
 					})
 				})
@@ -348,7 +348,7 @@ var _ = Describe("Converter", func() {
 			Context("when the source value is struct", func() {
 				It("returns an error", func() {
 					source := struct{}{}
-					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert struct value {} to type int"))
+					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert struct '{}' to int"))
 					Expect(target).To(Equal(0))
 				})
 			})
@@ -381,7 +381,7 @@ var _ = Describe("Converter", func() {
 					})
 
 					It("returns an error", func() {
-						Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string value unknown to type uint: strconv.ParseUint: parsing \"unknown\": invalid syntax"))
+						Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string 'unknown' to uint: strconv.ParseUint: parsing \"unknown\": invalid syntax"))
 						Expect(target).To(Equal(uint(0)))
 					})
 				})
@@ -453,7 +453,7 @@ var _ = Describe("Converter", func() {
 			Context("when the source value is struct", func() {
 				It("returns an error", func() {
 					source := struct{}{}
-					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert struct value {} to type uint"))
+					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert struct '{}' to uint"))
 					Expect(target).To(Equal(uint(0)))
 				})
 			})
@@ -485,7 +485,7 @@ var _ = Describe("Converter", func() {
 					})
 
 					It("returns an error", func() {
-						Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string value unknown to type float32: strconv.ParseFloat: parsing \"unknown\": invalid syntax"))
+						Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string 'unknown' to float32: strconv.ParseFloat: parsing \"unknown\": invalid syntax"))
 						Expect(target).To(Equal(float32(0)))
 					})
 				})
@@ -557,7 +557,7 @@ var _ = Describe("Converter", func() {
 			Context("when the source value is struct", func() {
 				It("returns an error", func() {
 					source := struct{}{}
-					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert struct value {} to type float32"))
+					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert struct '{}' to float32"))
 					Expect(target).To(Equal(float32(0)))
 				})
 			})
@@ -591,7 +591,7 @@ var _ = Describe("Converter", func() {
 				})
 
 				It("returns an error", func() {
-					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string value John to type struct"))
+					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string 'John' to struct"))
 				})
 			})
 		})
@@ -613,7 +613,7 @@ var _ = Describe("Converter", func() {
 			Context("when the source is int", func() {
 				It("returns an error", func() {
 					source := 10
-					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert int value 10 to type struct"))
+					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert int '10' to struct"))
 				})
 			})
 		})
@@ -735,7 +735,7 @@ var _ = Describe("Converter", func() {
 			Context("when the source is int", func() {
 				It("returns an error", func() {
 					source := 10
-					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert int value 10 to type map"))
+					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert int '10' to map"))
 				})
 			})
 		})
@@ -914,7 +914,7 @@ var _ = Describe("Converter", func() {
 				})
 
 				It("returns an error", func() {
-					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string value wrong to type array: uuid: incorrect UUID length: wrong"))
+					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string 'wrong' to array: uuid: incorrect UUID length: wrong"))
 				})
 			})
 		})
@@ -1000,7 +1000,7 @@ var _ = Describe("Converter", func() {
 						})
 
 						It("returns an error", func() {
-							Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string value unknown to type int: strconv.ParseInt: parsing \"unknown\": invalid syntax"))
+							Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string 'unknown' to int: strconv.ParseInt: parsing \"unknown\": invalid syntax"))
 						})
 					})
 				})

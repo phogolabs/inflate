@@ -489,7 +489,7 @@ func (d *Converter) unmarshalText(target reflect.Value, data []byte) (bool, erro
 func (d *Converter) error(source, target reflect.Value, err error) error {
 	buffer := &bytes.Buffer{}
 
-	fmt.Fprintf(buffer, "cannot convert %v value %+v to type %v",
+	fmt.Fprintf(buffer, "cannot convert %v '%+v' to %v",
 		source.Kind(),
 		source.Interface(),
 		target.Kind())
