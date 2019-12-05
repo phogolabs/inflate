@@ -61,54 +61,8 @@ if err := inflate.SetDefault(account); err != nil {
 }
 ```
 
-There are another more complex cases. A good example for that is an Open API
-specification. The package supports support serialization of parameters based
-on [OpenAPI spec](https://swagger.io/docs/specification/serialization/). Let's
-assume that we have an incoming http request `r`. We will decode the following
-structure based on OpenAPI standards:
-
-```golang
-type Input struct {
-   RequestID string                 `header:"X-Header-ID"`
-   Filter    map[string]interface{} `query:"filter"`
-   UserID    string                 `path:"user_id"`
-   Secret    string                 `cookie:"secret"`
-}
-```
-
-You can decode a object from a `http.Header` by using the following code:
-
-```golang
-if err := inflate.NewHeaderDecoder(r.Header).Decode(obj) {
-  panic(err)
-}
-```
-
-You can decode a object from a `http.Cookie` by using the following code:
-
-```golang
-if err := inflate.NewCookieDecoder(r.Cookie()).Decode(obj) {
-  panic(err)
-}
-```
-
-You can decode a object from a `http.Values` by using the following code:
-
-```golang
-if err := inflate.NewQueryDecoder(r.URL.Query()).Decode(obj) {
-  panic(err)
-}
-```
-
-You can decode a object from a `chi.RouteParams` by using the following code:
-
-```golang
-if ctx, ok := r.Context().Value(chi.RouteCtxKey).(*chi.Context); ok {
-  if err = inflate.NewPathDecoder(&ctx.URLParams).Decode(obj); err != nil {
-    panic(err)
-  }
-}
-```
+The package supports support serialization of parameters based on [OpenAPI spec](https://swagger.io/docs/specification/serialization/).
+For more advanced examples, please do see the online documentation.
 
 ## Contributing
 
