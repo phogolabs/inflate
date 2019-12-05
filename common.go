@@ -177,13 +177,17 @@ func (f *Field) IsZero() bool {
 
 // Struct returns the field if it's struct
 func (f *Field) Struct() *Struct {
-	if f.Value.Kind() != reflect.Struct {
+	value := elem(f.Value)
+
+	fmt.Println(value.Kind())
+
+	if value.Kind() != reflect.Struct {
 		return nil
 	}
 
 	return &Struct{
 		TagName: f.Tag.Key,
-		Value:   f.Value,
+		Value:   value,
 	}
 }
 

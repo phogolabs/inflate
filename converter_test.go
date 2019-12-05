@@ -1029,4 +1029,20 @@ var _ = Describe("Converter", func() {
 			Expect(converter.Convert(&source, target)).To(MatchError("the target must be addressable (a pointer)"))
 		})
 	})
+
+	Context("when the target type has nested property", func() {
+		It("converts the value successfully", func() {
+			target := Nested{}
+			source := map[string]interface{}{
+				"id":    "my-id",
+				"value": "Jack",
+			}
+
+			Expect(converter.Convert(&source, &target)).To(Succeed())
+			Expect(target.ID).To(Equal("my-id"))
+			Expect(target.User).NotTo(BeNil())
+			Expect(target.User.Name).To(Equal("Jack"))
+			Expect(target.Map).NotTo(BeNil())
+		})
+	})
 })

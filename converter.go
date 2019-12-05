@@ -240,6 +240,31 @@ func (d *Converter) convertToStruct(source, target reflect.Value) error {
 
 func (d *Converter) convertStructFromMap(source *Map, target *Struct) error {
 	for _, field := range target.Fields() {
+		if field.Tag.Name == "~" {
+			value := create(field.Value.Type())
+
+			switch value.Kind() {
+			case reflect.Struct:
+				obj := StructOf(d.TagName, value)
+
+				if err := d.convertStructFromMap(source, obj); err != nil {
+					return err
+				}
+			case reflect.Map:
+				obj := MapOf(d.TagName, value)
+
+				if err := d.convertMapFromMap(source, obj); err != nil {
+					return err
+				}
+			default:
+				return d.error(source.Value, target.Value,
+					fmt.Errorf("%s cannot be nested", field.Name))
+			}
+
+			set(field.Value, value.Addr())
+			continue
+		}
+
 		key := elem(reflect.New(source.Key))
 
 		if err := d.convert(elem(reflect.ValueOf(field.Tag.Name)), key); err != nil {

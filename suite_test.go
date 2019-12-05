@@ -24,6 +24,12 @@ type Account struct {
 	User *User `fake:"user"`
 }
 
+type Nested struct {
+	ID   string                 `fake:"id"`
+	User *User                  `fake:"~"`
+	Map  map[string]interface{} `fake:"~"`
+}
+
 type Text struct {
 	Value string `fake:"value"`
 	Error error  `fake:"error"`
