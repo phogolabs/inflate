@@ -49,6 +49,10 @@ target := &OrderItem{}
 if err := inflate.Set(source, target); err != nil {
   panic(err)
 }
+
+fmt.Printf("%+v", target)
+
+// Output: &{OrderID:0000123}
 ```
 
 You can use the package to set the default values (if they are not set):
@@ -65,6 +69,10 @@ account := &Account{}
 if err := inflate.SetDefault(account); err != nil {
   panic(err)
 }
+
+fmt.Printf("%+v", account)
+
+// Output: &{Category:unknown}
 ```
 
 The package supports serialization of parameters in [OpenAPI spec](https://swagger.io/docs/specification/serialization/) format.
