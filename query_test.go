@@ -37,6 +37,13 @@ var _ = Describe("Query", func() {
 		})
 	})
 
+	Describe("NewFormDecoder", func() {
+		It("creates a new form decoder", func() {
+			decoder := inflate.NewFormDecoder(url.Values{})
+			Expect(decoder).NotTo(BeNil())
+		})
+	})
+
 	Describe("Value", func() {
 		Context("when the value is primitive type", func() {
 			BeforeEach(func() {

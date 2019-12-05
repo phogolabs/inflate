@@ -22,6 +22,19 @@ func NewQueryDecoder(query url.Values) *Decoder {
 	}
 }
 
+// NewFormDecoder creates a path decoder
+func NewFormDecoder(query url.Values) *Decoder {
+	return &Decoder{
+		TagName: "form",
+		Converter: &Converter{
+			TagName: "form",
+		},
+		Provider: &QueryProvider{
+			Query: query,
+		},
+	}
+}
+
 var _ ValueProvider = &QueryProvider{}
 
 // QueryProvider represents a parameter provider that fetches values from
