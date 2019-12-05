@@ -2,8 +2,6 @@ package inflate_test
 
 import (
 	"net/url"
-
-	"github.com/phogolabs/inflate"
 )
 
 func ExampleDecoder_query() {
@@ -19,7 +17,7 @@ func ExampleDecoder_query() {
 
 	user := &User{}
 
-	if err := inflate.NewQueryDecoder(query).Decode(user); err != nil {
+	if err := NewQueryDecoder(query).Decode(user); err != nil {
 		panic(err)
 	}
 

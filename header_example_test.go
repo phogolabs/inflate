@@ -2,8 +2,6 @@ package inflate
 
 import (
 	"net/http"
-
-	"github.com/phogolabs/inflate"
 )
 
 func ExampleDecoder_header() {
@@ -16,7 +14,7 @@ func ExampleDecoder_header() {
 
 	tag := &Tag{}
 
-	if err := inflate.NewHeaderDecoder(header).Decode(tag); err != nil {
+	if err := NewHeaderDecoder(header).Decode(tag); err != nil {
 		panic(err)
 	}
 

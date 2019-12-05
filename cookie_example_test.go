@@ -2,8 +2,6 @@ package inflate
 
 import (
 	"net/http"
-
-	"github.com/phogolabs/inflate"
 )
 
 func ExampleDecoder_cookie() {
@@ -17,7 +15,7 @@ func ExampleDecoder_cookie() {
 
 	session := &Session{}
 
-	if err := inflate.NewCookieDecoder(cookies).Decode(session); err != nil {
+	if err := NewCookieDecoder(cookies).Decode(session); err != nil {
 		panic(err)
 	}
 
