@@ -16,9 +16,9 @@ type CookieProvider struct {
 // NewCookieDecoder creates a cookie decoder
 func NewCookieDecoder(cookies []*http.Cookie) *Decoder {
 	return &Decoder{
-		TagName: "path",
+		TagName: "cookie",
 		Converter: &Converter{
-			TagName: "path",
+			TagName: "cookie",
 		},
 		Provider: &CookieProvider{
 			Cookies: cookies,

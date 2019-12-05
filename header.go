@@ -11,9 +11,9 @@ import (
 // NewHeaderDecoder creates a header decoder
 func NewHeaderDecoder(header http.Header) *Decoder {
 	return &Decoder{
-		TagName: "path",
+		TagName: "header",
 		Converter: &Converter{
-			TagName: "path",
+			TagName: "header",
 		},
 		Provider: &HeaderProvider{
 			Header: header,
