@@ -81,7 +81,7 @@ func (d *Decoder) decode(ch *Struct) error {
 		ctx := &Context{
 			Field:  field.Name,
 			Tag:    field.Tag,
-			Type:   elem(field.Value).Type(),
+			Type:   target.Type(),
 			IsZero: field.Value.IsZero(),
 		}
 
