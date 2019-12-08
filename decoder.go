@@ -74,7 +74,10 @@ func (d *Decoder) decode(ch *Struct) error {
 				}
 			}
 
-			set(field.Value, target)
+			if err := set(field.Value, target); err != nil {
+				return err
+			}
+
 			continue
 		}
 
@@ -96,7 +99,9 @@ func (d *Decoder) decode(ch *Struct) error {
 			return err
 		}
 
-		set(field.Value, target)
+		if err := set(field.Value, target); err != nil {
+			return err
+		}
 	}
 
 	return nil
