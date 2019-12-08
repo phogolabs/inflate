@@ -337,7 +337,7 @@ func set(target reflect.Value, source reflect.Value) error {
 		}
 	}
 
-	return fmt.Errorf("oh no")
+	return rerror(source, target, nil)
 }
 
 func variants(source reflect.Value) []reflect.Value {

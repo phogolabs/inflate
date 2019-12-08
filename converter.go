@@ -1,7 +1,6 @@
 package inflate
 
 import (
-	"bytes"
 	"database/sql"
 	"database/sql/driver"
 	"encoding"
@@ -64,7 +63,7 @@ func (d *Converter) convert(source, target reflect.Value) (err error) {
 	case reflect.Interface:
 		err = d.convertToBasic(source, target)
 	default:
-		return d.error(source, target, nil)
+		return rerror(source, target, nil)
 	}
 
 	return err
@@ -99,7 +98,7 @@ func (d *Converter) convertToString(source, target reflect.Value) error {
 			return d.convertToString(source, target)
 		}
 
-		return d.error(source, target, err)
+		return rerror(source, target, err)
 	}
 
 	return nil
@@ -124,7 +123,7 @@ func (d *Converter) convertToBool(source, target reflect.Value) error {
 		case source.String() == "":
 			target.SetBool(false)
 		default:
-			return d.error(source, target, err)
+			return rerror(source, target, err)
 		}
 	case reflect.Struct:
 		value, ok, err := d.valueRead(source)
@@ -133,9 +132,9 @@ func (d *Converter) convertToBool(source, target reflect.Value) error {
 			return d.convertToBool(source, target)
 		}
 
-		return d.error(source, target, err)
+		return rerror(source, target, err)
 	default:
-		return d.error(source, target, nil)
+		return rerror(source, target, nil)
 	}
 
 	return nil
@@ -159,7 +158,7 @@ func (d *Converter) convertToInt(source, target reflect.Value) error {
 		value, err := strconv.ParseInt(source.String(), 0, target.Type().Bits())
 
 		if err != nil {
-			return d.error(source, target, err)
+			return rerror(source, target, err)
 		}
 
 		target.SetInt(value)
@@ -171,9 +170,9 @@ func (d *Converter) convertToInt(source, target reflect.Value) error {
 			return d.convertToInt(source, target)
 		}
 
-		return d.error(source, target, err)
+		return rerror(source, target, err)
 	default:
-		return d.error(source, target, nil)
+		return rerror(source, target, nil)
 	}
 
 	return nil
@@ -197,7 +196,7 @@ func (d *Converter) convertToUint(source, target reflect.Value) error {
 		value, err := strconv.ParseUint(source.String(), 0, target.Type().Bits())
 
 		if err != nil {
-			return d.error(source, target, err)
+			return rerror(source, target, err)
 		}
 
 		target.SetUint(value)
@@ -208,9 +207,9 @@ func (d *Converter) convertToUint(source, target reflect.Value) error {
 			return d.convertToUint(source, target)
 		}
 
-		return d.error(source, target, err)
+		return rerror(source, target, err)
 	default:
-		return d.error(source, target, nil)
+		return rerror(source, target, nil)
 	}
 
 	return nil
@@ -234,7 +233,7 @@ func (d *Converter) convertToFloat(source, target reflect.Value) error {
 		value, err := strconv.ParseFloat(source.String(), target.Type().Bits())
 
 		if err != nil {
-			return d.error(source, target, err)
+			return rerror(source, target, err)
 		}
 
 		target.SetFloat(value)
@@ -245,9 +244,9 @@ func (d *Converter) convertToFloat(source, target reflect.Value) error {
 			return d.convertToFloat(source, target)
 		}
 
-		return d.error(source, target, err)
+		return rerror(source, target, err)
 	default:
-		return d.error(source, target, nil)
+		return rerror(source, target, nil)
 	}
 
 	return nil
@@ -261,7 +260,7 @@ func (d *Converter) convertToStruct(source, target reflect.Value) error {
 			return nil
 		}
 
-		return d.error(source, target, err)
+		return rerror(source, target, err)
 	case reflect.Struct:
 		return d.convertStructFromMap(
 			StructOf(d.TagName, source).Map(),
@@ -278,7 +277,7 @@ func (d *Converter) convertToStruct(source, target reflect.Value) error {
 			return nil
 		}
 
-		return d.error(source, target, err)
+		return rerror(source, target, err)
 	}
 }
 
@@ -292,16 +291,16 @@ func (d *Converter) convertStructFromMap(source *Map, target *Struct) error {
 				obj := StructOf(d.TagName, value)
 
 				if err := d.convertStructFromMap(source, obj); err != nil {
-					return d.errorf(field.Name, err)
+					return rerrorf(field.Name, err)
 				}
 			case reflect.Map:
 				obj := MapOf(d.TagName, value)
 
 				if err := d.convertMapFromMap(source, obj); err != nil {
-					return d.errorf(field.Name, err)
+					return rerrorf(field.Name, err)
 				}
 			default:
-				return d.errorf(field.Name, d.error(source.Value, target.Value, nil))
+				return rerrorf(field.Name, rerror(source.Value, target.Value, nil))
 			}
 
 			if err := set(field.Value, value.Addr()); err != nil {
@@ -355,9 +354,9 @@ func (d *Converter) convertToMap(source, target reflect.Value) error {
 			return nil
 		}
 
-		return d.error(source, target, err)
+		return rerror(source, target, err)
 	default:
-		return d.error(source, target, nil)
+		return rerror(source, target, nil)
 	}
 }
 
@@ -382,7 +381,7 @@ func (d *Converter) convertMapFromMap(source *Map, target *Map) error {
 		)
 
 		if err := d.convert(elem(item), converted); err != nil {
-			return d.errorf(fmt.Sprintf("%v", iter.Key().Interface()), err)
+			return rerrorf(fmt.Sprintf("%v", iter.Key().Interface()), err)
 		}
 
 		if !converted.IsZero() {
@@ -398,7 +397,7 @@ func (d *Converter) convertToArray(source, target reflect.Value) error {
 	case reflect.String:
 		if ok, err := d.textUnmarshal(source.String(), target); ok {
 			if err != nil {
-				return d.error(source, target, err)
+				return rerror(source, target, err)
 			}
 
 			return nil
@@ -555,24 +554,4 @@ func (d *Converter) valueScan(value interface{}, target reflect.Value) (bool, er
 	}
 
 	return false, nil
-}
-
-func (d *Converter) error(source, target reflect.Value, err error) error {
-	buffer := &bytes.Buffer{}
-
-	fmt.Fprintf(buffer, "cannot convert %v '%+v' to %v",
-		kind(source),
-		source.Interface(),
-		kind(target),
-	)
-
-	if err != nil {
-		return fmt.Errorf("%s: %w", buffer.String(), err)
-	}
-
-	return fmt.Errorf(buffer.String())
-}
-
-func (d *Converter) errorf(name string, msg interface{}) error {
-	return fmt.Errorf("%v: %v", name, msg)
 }
