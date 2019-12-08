@@ -50,7 +50,7 @@ func (p *QueryProvider) Value(ctx *Context) (interface{}, error) {
 		ctx.Tag.AddOption(OptionExplode)
 	}
 
-	if canUnmarshalText(ctx.Type) {
+	if convertable(ctx.Type) {
 		return p.valueOf(ctx)
 	}
 

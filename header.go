@@ -35,7 +35,7 @@ func (p *HeaderProvider) Value(ctx *Context) (interface{}, error) {
 		ctx.Tag.AddOption(OptionSimple)
 	}
 
-	if canUnmarshalText(ctx.Type) {
+	if convertable(ctx.Type) {
 		return p.valueOf(ctx)
 	}
 

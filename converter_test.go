@@ -1075,7 +1075,7 @@ var _ = Describe("Converter", func() {
 					})
 
 					It("returns an error", func() {
-						Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string 'unknown' to struct"))
+						Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string 'unknown' to struct: converting driver.Value type string (\"unknown\") to a int64: invalid syntax"))
 					})
 				})
 			})

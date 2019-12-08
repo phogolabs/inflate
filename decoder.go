@@ -140,7 +140,7 @@ func (p *DefaultProvider) Value(ctx *Context) (interface{}, error) {
 
 	value := ctx.Tag.Name
 
-	if canUnmarshalText(ctx.Type) {
+	if convertable(ctx.Type) {
 		return value, nil
 	}
 

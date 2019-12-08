@@ -2,6 +2,7 @@ package inflate
 
 import (
 	"bytes"
+	"database/sql"
 	"encoding"
 	"fmt"
 	"reflect"
@@ -398,14 +399,30 @@ func rerrorf(name string, msg interface{}) error {
 	return fmt.Errorf("%v: %v", name, msg)
 }
 
-func canUnmarshalText(target reflect.Type) bool {
-	targetType := reflect.TypeOf(new(encoding.TextUnmarshaler)).Elem()
+func convertable(target reflect.Type) bool {
+	var (
+		targetInterfaceTypes = []reflect.Type{
+			reflect.TypeOf(new(encoding.TextUnmarshaler)).Elem(),
+			reflect.TypeOf(new(sql.Scanner)).Elem(),
+		}
+		targetTypes = []reflect.Type{
+			target,
+		}
+	)
 
 	if target.Kind() != reflect.Ptr {
-		target = reflect.PtrTo(target)
+		targetTypes = append(targetTypes, reflect.PtrTo(target))
 	}
 
-	return target.Implements(targetType)
+	for _, targetInterfaceType := range targetInterfaceTypes {
+		for _, targetType := range targetTypes {
+			if targetType.Implements(targetInterfaceType) {
+				return true
+			}
+		}
+	}
+
+	return false
 }
 
 func convertMap(parts []string) (map[string]interface{}, error) {

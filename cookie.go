@@ -39,7 +39,7 @@ func (p *CookieProvider) Value(ctx *Context) (interface{}, error) {
 		}
 	}
 
-	if canUnmarshalText(ctx.Type) {
+	if convertable(ctx.Type) {
 		return p.valueOf(ctx)
 	}
 

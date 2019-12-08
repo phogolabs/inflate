@@ -254,13 +254,6 @@ func (d *Converter) convertToFloat(source, target reflect.Value) error {
 
 func (d *Converter) convertToStruct(source, target reflect.Value) error {
 	switch kind(source) {
-	case reflect.String:
-		ok, err := d.textUnmarshal(source.String(), target)
-		if ok && err == nil {
-			return nil
-		}
-
-		return rerror(source, target, err)
 	case reflect.Struct:
 		return d.convertStructFromMap(
 			StructOf(d.TagName, source).Map(),
@@ -271,6 +264,13 @@ func (d *Converter) convertToStruct(source, target reflect.Value) error {
 			MapOf(d.TagName, source),
 			StructOf(d.TagName, target),
 		)
+	case reflect.String:
+		ok, err := d.textUnmarshal(source.String(), target)
+		if ok && err == nil {
+			return nil
+		}
+
+		fallthrough
 	default:
 		ok, err := d.valueScan(source.Interface(), target)
 		if ok && err == nil {
@@ -354,8 +354,13 @@ func (d *Converter) convertToMap(source, target reflect.Value) error {
 			return nil
 		}
 
-		return rerror(source, target, err)
+		fallthrough
 	default:
+		ok, err := d.valueScan(source.Interface(), target)
+		if ok && err == nil {
+			return nil
+		}
+
 		return rerror(source, target, nil)
 	}
 }
