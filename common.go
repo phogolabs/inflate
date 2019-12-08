@@ -311,6 +311,15 @@ func elem(v reflect.Value) reflect.Value {
 	return v
 }
 
+func refer(v reflect.Value) reflect.Value {
+	if !v.IsZero() {
+		return elem(v)
+	}
+
+	t := v.Type()
+	return create(t)
+}
+
 func create(t reflect.Type) reflect.Value {
 	if t.Kind() == reflect.Ptr {
 		t = t.Elem()
@@ -332,6 +341,10 @@ func set(target reflect.Value, value reflect.Value) {
 	switch target.Type().Kind() {
 	case reflect.Ptr:
 		if value.Type().Kind() != reflect.Ptr {
+			if !value.CanAddr() {
+				return
+			}
+
 			value = value.Addr()
 		}
 	default:

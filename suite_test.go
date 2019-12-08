@@ -18,7 +18,7 @@ type TValue struct {
 }
 
 type User struct {
-	Name string `fake:"value"`
+	Name string `fake:"value" default:"John"`
 }
 
 type Account struct {

@@ -65,7 +65,7 @@ func (d *Decoder) Decode(value interface{}) error {
 
 func (d *Decoder) decode(ch *Struct) error {
 	for _, field := range ch.Fields() {
-		target := create(field.Value.Type())
+		target := refer(field.Value)
 
 		if field.Tag.Name == "~" {
 			if target.Kind() == reflect.Struct {

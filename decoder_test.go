@@ -114,12 +114,15 @@ var _ = Describe("Decoder", func() {
 var _ = Describe("SetDefault", func() {
 	type Account struct {
 		Category string `default:"unknown"`
+		User     *User  `default:"~"`
 	}
 
 	It("sets the defaults successfully", func() {
 		account := &Account{}
 		Expect(inflate.SetDefault(account)).To(Succeed())
 		Expect(account.Category).To(Equal("unknown"))
+		Expect(account.User).NotTo(BeNil())
+		Expect(account.User.Name).To(Equal("John"))
 	})
 
 	Context("when the value is set", func() {
@@ -127,6 +130,16 @@ var _ = Describe("SetDefault", func() {
 			account := &Account{Category: "Jack"}
 			Expect(inflate.SetDefault(account)).To(Succeed())
 			Expect(account.Category).To(Equal("Jack"))
+		})
+
+		Context("whne the subproperty has a non zero field", func() {
+			It("does not set the value", func() {
+				account := &Account{User: &User{Name: "Peter"}}
+				Expect(inflate.SetDefault(account)).To(Succeed())
+				Expect(account.Category).To(Equal("unknown"))
+				Expect(account.User).NotTo(BeNil())
+				Expect(account.User.Name).To(Equal("Peter"))
+			})
 		})
 	})
 })

@@ -32,7 +32,7 @@ func (d *Converter) Convert(from, to interface{}) error {
 
 func (d *Converter) convert(source, target reflect.Value) (err error) {
 	if !source.IsValid() {
-		source = create(target.Type())
+		source = refer(target)
 		set(target, source)
 		return nil
 	}
@@ -287,7 +287,7 @@ func (d *Converter) convertToStruct(source, target reflect.Value) error {
 func (d *Converter) convertStructFromMap(source *Map, target *Struct) error {
 	for _, field := range target.Fields() {
 		if field.Tag.Name == "~" {
-			value := create(field.Value.Type())
+			value := refer(field.Value)
 
 			switch kind(value) {
 			case reflect.Struct:
@@ -322,7 +322,7 @@ func (d *Converter) convertStructFromMap(source *Map, target *Struct) error {
 			continue
 		}
 
-		converted := create(field.Value.Type())
+		converted := refer(field.Value)
 
 		if err := d.convert(elem(item), converted); err != nil {
 			return err
@@ -476,7 +476,7 @@ func (d *Converter) convertToBasic(source, target reflect.Value) error {
 	}
 
 	if target.IsValid() && target.Elem().IsValid() {
-		target = create(target.Elem().Type())
+		target = refer(target.Elem())
 		source = elem(source)
 
 		if err := d.convert(source, target); err != nil {
