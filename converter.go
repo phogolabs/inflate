@@ -33,13 +33,11 @@ func (d *Converter) Convert(from, to interface{}) error {
 func (d *Converter) convert(source, target reflect.Value) (err error) {
 	if !source.IsValid() {
 		source = refer(target)
-		set(target, source)
-		return nil
+		return set(target, source)
 	}
 
 	if source.Type() == target.Type() {
-		set(target, source)
-		return nil
+		return set(target, source)
 	}
 
 	switch kind(target) {
@@ -306,7 +304,10 @@ func (d *Converter) convertStructFromMap(source *Map, target *Struct) error {
 				return d.errorf(field.Name, d.error(source.Value, target.Value, nil))
 			}
 
-			set(field.Value, value.Addr())
+			if err := set(field.Value, value.Addr()); err != nil {
+				return err
+			}
+
 			continue
 		}
 
@@ -328,7 +329,9 @@ func (d *Converter) convertStructFromMap(source *Map, target *Struct) error {
 			return err
 		}
 
-		set(field.Value, converted)
+		if err := set(field.Value, converted); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -441,7 +444,7 @@ func (d *Converter) convertArrayFromArray(source *Array, target *Array) error {
 					return nil
 				}
 
-				set(target.Value.Index(index), converted)
+				return set(target.Value.Index(index), converted)
 			case reflect.Slice:
 				target.Append(converted)
 			}
@@ -464,54 +467,40 @@ func (d *Converter) convertToPtr(source, target reflect.Value) error {
 		return err
 	}
 
-	set(origin, target)
-	return nil
+	return set(origin, target)
 }
 
 func (d *Converter) convertToBasic(source, target reflect.Value) error {
-	origin := target
-
 	if !source.IsValid() {
 		source = create(source.Type())
 	}
 
 	if target.IsValid() && target.Elem().IsValid() {
-		target = refer(target.Elem())
+		targetElem := refer(target.Elem())
 		source = elem(source)
 
-		if err := d.convert(source, target); err != nil {
+		if err := d.convert(source, targetElem); err != nil {
 			return err
 		}
 
-		set(origin, target)
-		return nil
+		source = targetElem
 	}
 
-	if source.Type().AssignableTo(target.Type()) {
-		set(target, source)
-		return nil
-	}
-
-	if source.CanAddr() {
-		if source.Addr().Type().AssignableTo(target.Type()) {
-			set(target, source.Addr())
-			return nil
-		}
-	}
-
-	return d.error(source, target, nil)
+	return set(target, source)
 }
 
 func (d *Converter) textMarshal(source reflect.Value) (string, bool, error) {
 	targetType := reflect.TypeOf(new(encoding.TextMarshaler)).Elem()
 
-	if source.Type().Implements(targetType) {
-		var (
-			encoder   = source.Interface().(encoding.TextMarshaler)
-			data, err = encoder.MarshalText()
-		)
+	for _, variant := range variants(source) {
+		if variant.Type().Implements(targetType) {
+			var (
+				encoder   = variant.Interface().(encoding.TextMarshaler)
+				data, err = encoder.MarshalText()
+			)
 
-		return string(data), true, err
+			return string(data), true, err
+		}
 	}
 
 	return "", false, nil
@@ -520,19 +509,15 @@ func (d *Converter) textMarshal(source reflect.Value) (string, bool, error) {
 func (d *Converter) textUnmarshal(data string, target reflect.Value) (bool, error) {
 	targetType := reflect.TypeOf(new(encoding.TextUnmarshaler)).Elem()
 
-	if kind(target) != reflect.Ptr {
-		if target.CanAddr() {
-			target = target.Addr()
+	for _, variant := range variants(target) {
+		if variant.Type().Implements(targetType) {
+			var (
+				decoder = variant.Interface().(encoding.TextUnmarshaler)
+				err     = decoder.UnmarshalText([]byte(data))
+			)
+
+			return true, err
 		}
-	}
-
-	if target.Type().Implements(targetType) {
-		var (
-			decoder = target.Interface().(encoding.TextUnmarshaler)
-			err     = decoder.UnmarshalText([]byte(data))
-		)
-
-		return true, err
 	}
 
 	return false, nil
@@ -541,13 +526,15 @@ func (d *Converter) textUnmarshal(data string, target reflect.Value) (bool, erro
 func (d *Converter) valueRead(source reflect.Value) (interface{}, bool, error) {
 	targetType := reflect.TypeOf(new(driver.Valuer)).Elem()
 
-	if source.Type().Implements(targetType) {
-		var (
-			valuer    = source.Interface().(driver.Valuer)
-			data, err = valuer.Value()
-		)
+	for _, variant := range variants(source) {
+		if variant.Type().Implements(targetType) {
+			var (
+				valuer    = variant.Interface().(driver.Valuer)
+				data, err = valuer.Value()
+			)
 
-		return data, true, err
+			return data, true, err
+		}
 	}
 
 	return "", false, nil
@@ -556,19 +543,15 @@ func (d *Converter) valueRead(source reflect.Value) (interface{}, bool, error) {
 func (d *Converter) valueScan(value interface{}, target reflect.Value) (bool, error) {
 	targetType := reflect.TypeOf(new(sql.Scanner)).Elem()
 
-	if kind(target) != reflect.Ptr {
-		if target.CanAddr() {
-			target = target.Addr()
+	for _, variant := range variants(target) {
+		if variant.Type().Implements(targetType) {
+			var (
+				scanner = variant.Interface().(sql.Scanner)
+				err     = scanner.Scan(value)
+			)
+
+			return true, err
 		}
-	}
-
-	if target.Type().Implements(targetType) {
-		var (
-			scanner = target.Interface().(sql.Scanner)
-			err     = scanner.Scan(value)
-		)
-
-		return true, err
 	}
 
 	return false, nil

@@ -1,6 +1,7 @@
 package inflate
 
 import (
+	"bytes"
 	"encoding"
 	"fmt"
 	"reflect"
@@ -328,34 +329,33 @@ func create(t reflect.Type) reflect.Value {
 	return elem(reflect.New(t))
 }
 
-func set(target reflect.Value, value reflect.Value) {
-	if value.IsZero() {
-		return
+func set(target reflect.Value, source reflect.Value) error {
+	for _, value := range variants(source) {
+		if value.Type().AssignableTo(target.Type()) {
+			target.Set(value)
+			return nil
+		}
 	}
 
-	if value.Type().AssignableTo(target.Type()) {
-		target.Set(value)
-		return
-	}
+	return fmt.Errorf("oh no")
+}
 
-	switch target.Type().Kind() {
+func variants(source reflect.Value) []reflect.Value {
+	values := []reflect.Value{}
+
+	switch source.Type().Kind() {
 	case reflect.Ptr:
-		if value.Type().Kind() != reflect.Ptr {
-			if !value.CanAddr() {
-				return
-			}
-
-			value = value.Addr()
-		}
+		values = append(values, source)
+		values = append(values, source.Elem())
 	default:
-		if value.Type().Kind() == reflect.Ptr {
-			value = value.Elem()
+		values = append(values, source)
+
+		if source.CanAddr() {
+			values = append(values, source.Addr())
 		}
 	}
 
-	if value.Type().AssignableTo(target.Type()) {
-		target.Set(value)
-	}
+	return values
 }
 
 func check(name string, value interface{}) (reflect.Value, error) {
@@ -376,6 +376,26 @@ func check(name string, value interface{}) (reflect.Value, error) {
 	}
 
 	return elem(field), nil
+}
+
+func rerror(source, target reflect.Value, err error) error {
+	buffer := &bytes.Buffer{}
+
+	fmt.Fprintf(buffer, "cannot convert %v '%+v' to %v",
+		kind(source),
+		source.Interface(),
+		kind(target),
+	)
+
+	if err != nil {
+		return fmt.Errorf("%s: %w", buffer.String(), err)
+	}
+
+	return fmt.Errorf(buffer.String())
+}
+
+func rerrorf(name string, msg interface{}) error {
+	return fmt.Errorf("%v: %v", name, msg)
 }
 
 func canUnmarshalText(target reflect.Type) bool {
