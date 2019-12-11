@@ -28,6 +28,10 @@ func NewCookieDecoder(cookies []*http.Cookie) *Decoder {
 
 // Value returns a primitive value
 func (p *CookieProvider) Value(ctx *Context) (interface{}, error) {
+	if ctx.Tag.Name == "" {
+		return nil, nil
+	}
+
 	if len(ctx.Tag.Options) == 0 {
 		ctx.Tag.AddOption(OptionForm)
 

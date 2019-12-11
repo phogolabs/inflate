@@ -31,6 +31,10 @@ type HeaderProvider struct {
 
 // Value returns a primitive value
 func (p *HeaderProvider) Value(ctx *Context) (interface{}, error) {
+	if ctx.Tag.Name == "" {
+		return nil, nil
+	}
+
 	if len(ctx.Tag.Options) == 0 {
 		ctx.Tag.AddOption(OptionSimple)
 	}
