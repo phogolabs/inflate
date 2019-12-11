@@ -51,7 +51,7 @@ type OrderItem struct {
 source := &Order{ID: "0000123"}
 target := &OrderItem{}
 
-if err := inflate.Set(source, target); err != nil {
+if err := inflate.Set(target, source); err != nil {
   panic(err)
 }
 

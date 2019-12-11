@@ -108,7 +108,7 @@ func (d *Decoder) decode(ch *Struct) error {
 }
 
 // Set sets the value
-func Set(source, target interface{}) error {
+func Set(target, source interface{}) error {
 	converter := &Converter{
 		TagName: "field",
 	}

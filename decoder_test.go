@@ -157,7 +157,7 @@ var _ = Describe("Set", func() {
 		source := &Order{ID: "0000123"}
 		target := &OrderItem{}
 
-		Expect(inflate.Set(source, target)).To(Succeed())
+		Expect(inflate.Set(target, source)).To(Succeed())
 		Expect(target.OrderID).To(Equal(source.ID))
 	})
 })
