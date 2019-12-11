@@ -143,6 +143,10 @@ func (p *DefaultProvider) Value(ctx *Context) (interface{}, error) {
 		kind  = ctx.Type.Kind()
 	)
 
+	if value == "" {
+		return nil, nil
+	}
+
 	if convertable(ctx.Type) {
 		return value, nil
 	}
