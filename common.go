@@ -39,8 +39,12 @@ func (s *Struct) Fields() []*Field {
 
 		tag := ParseTag(s.TagName, field.Tag.Get(s.TagName))
 
-		if tag == nil || tag.Name == "-" || tag.Name == "" {
+		if tag == nil || tag.Name == "-" {
 			continue
+		}
+
+		if tag.Name == "" {
+			tag.Name = field.Name
 		}
 
 		fields = append(fields, &Field{
@@ -82,13 +86,7 @@ func (s *Struct) tree(ch *Struct, kv map[string]interface{}) {
 			}
 		}
 
-		key := field.Tag.Name
-
-		if key == "" {
-			key = field.Name
-		}
-
-		kv[key] = field.Value.Interface()
+		kv[field.Tag.Name] = field.Value.Interface()
 	}
 }
 
