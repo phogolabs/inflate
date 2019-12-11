@@ -114,7 +114,7 @@ var _ = Describe("Decoder", func() {
 var _ = Describe("SetDefault", func() {
 	type Account struct {
 		Category string `default:"unknown"`
-		User     *User  `default:"~"`
+		User     *User  `default:"{\"name\":\"Peter\"}"`
 	}
 
 	It("sets the defaults successfully", func() {
@@ -122,7 +122,7 @@ var _ = Describe("SetDefault", func() {
 		Expect(inflate.SetDefault(account)).To(Succeed())
 		Expect(account.Category).To(Equal("unknown"))
 		Expect(account.User).NotTo(BeNil())
-		Expect(account.User.Name).To(Equal("John"))
+		Expect(account.User.Name).To(Equal("Peter"))
 	})
 
 	Context("when the value is set", func() {

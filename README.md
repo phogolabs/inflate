@@ -63,21 +63,29 @@ fmt.Printf("%+v", target)
 You can use the package to set the default values (if they are not set):
 
 ```golang
-type Account struct {
-  Category string `default:"unknown"`
+type Address struct {
+	City    string `json:"city"`
+	Country string `json:"country"`
 }
+
+type Profile struct {
+	Name    string  `default:"John"`
+	Address Address `default:"{\"city\":\"London\",\"country\":\"UK\"}"`
+}
+
 ```
 
 ```golang
-account := &Account{}
+profile := &Profile{}
 
-if err := inflate.SetDefault(account); err != nil {
-  panic(err)
+if err := inflate.SetDefault(profile); err != nil {
+	panic(err)
 }
 
-fmt.Printf("%+v", account)
+fmt.Printf("%+v", profile)
 
-// Output: &{Category:unknown}
+// Output:
+// &{Name:John Address:{City:London Country:UK}}
 ```
 
 The package supports serialization of parameters in [OpenAPI spec](https://swagger.io/docs/specification/serialization/) format.

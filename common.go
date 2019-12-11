@@ -134,6 +134,13 @@ func (tag *Tag) AddOption(opt string) {
 
 // ParseTag returns the options
 func ParseTag(key, value string) *Tag {
+	if key == "default" {
+		return &Tag{
+			Key:  key,
+			Name: value,
+		}
+	}
+
 	parts := strings.Split(value, ",")
 
 	var (

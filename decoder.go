@@ -138,29 +138,24 @@ func (p *DefaultProvider) Value(ctx *Context) (interface{}, error) {
 		return nil, nil
 	}
 
-	value := ctx.Tag.Name
+	var (
+		value = ctx.Tag.Name
+		kind  = ctx.Type.Kind()
+	)
 
 	if convertable(ctx.Type) {
 		return value, nil
 	}
 
-	switch ctx.Type.Kind() {
+	if kind == reflect.Ptr {
+		kind = ctx.Type.Elem().Kind()
+	}
+
+	switch kind {
 	case reflect.Map, reflect.Struct:
-		kv := make(map[string]interface{})
-
-		if err := json.Unmarshal([]byte(value), &kv); err != nil {
-			return nil, err
-		}
-
-		return kv, nil
+		return json.RawMessage(value), nil
 	case reflect.Array, reflect.Slice:
-		arr := []interface{}{}
-
-		if err := json.Unmarshal([]byte(value), &arr); err != nil {
-			return nil, err
-		}
-
-		return arr, nil
+		return json.RawMessage(value), nil
 	default:
 		return value, nil
 	}

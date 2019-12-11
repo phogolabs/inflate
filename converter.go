@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"encoding"
+	"encoding/json"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -125,7 +126,7 @@ func (d *Converter) convertToBool(source, target reflect.Value) error {
 		default:
 			return rerror(source, target, err)
 		}
-	case reflect.Struct:
+	default:
 		value, ok, err := d.valueRead(source)
 		if ok && err == nil {
 			source = elem(reflect.ValueOf(value))
@@ -133,8 +134,6 @@ func (d *Converter) convertToBool(source, target reflect.Value) error {
 		}
 
 		return rerror(source, target, err)
-	default:
-		return rerror(source, target, nil)
 	}
 
 	return nil
@@ -157,12 +156,13 @@ func (d *Converter) convertToInt(source, target reflect.Value) error {
 	case reflect.String:
 		value, err := strconv.ParseInt(source.String(), 0, target.Type().Bits())
 
-		if err != nil {
+		switch {
+		case err == nil:
+			target.SetInt(value)
+		default:
 			return rerror(source, target, err)
 		}
-
-		target.SetInt(value)
-	case reflect.Struct:
+	default:
 		value, ok, err := d.valueRead(source)
 		if ok && err == nil {
 
@@ -171,8 +171,6 @@ func (d *Converter) convertToInt(source, target reflect.Value) error {
 		}
 
 		return rerror(source, target, err)
-	default:
-		return rerror(source, target, nil)
 	}
 
 	return nil
@@ -195,12 +193,13 @@ func (d *Converter) convertToUint(source, target reflect.Value) error {
 	case reflect.String:
 		value, err := strconv.ParseUint(source.String(), 0, target.Type().Bits())
 
-		if err != nil {
+		switch {
+		case err == nil:
+			target.SetUint(value)
+		default:
 			return rerror(source, target, err)
 		}
-
-		target.SetUint(value)
-	case reflect.Struct:
+	default:
 		value, ok, err := d.valueRead(source)
 		if ok && err == nil {
 			source = elem(reflect.ValueOf(value))
@@ -208,8 +207,6 @@ func (d *Converter) convertToUint(source, target reflect.Value) error {
 		}
 
 		return rerror(source, target, err)
-	default:
-		return rerror(source, target, nil)
 	}
 
 	return nil
@@ -232,12 +229,13 @@ func (d *Converter) convertToFloat(source, target reflect.Value) error {
 	case reflect.String:
 		value, err := strconv.ParseFloat(source.String(), target.Type().Bits())
 
-		if err != nil {
+		switch {
+		case err == nil:
+			target.SetFloat(value)
+		default:
 			return rerror(source, target, err)
 		}
-
-		target.SetFloat(value)
-	case reflect.Struct:
+	default:
 		value, ok, err := d.valueRead(source)
 		if ok && err == nil {
 			source = elem(reflect.ValueOf(value))
@@ -245,8 +243,6 @@ func (d *Converter) convertToFloat(source, target reflect.Value) error {
 		}
 
 		return rerror(source, target, err)
-	default:
-		return rerror(source, target, nil)
 	}
 
 	return nil
@@ -264,21 +260,29 @@ func (d *Converter) convertToStruct(source, target reflect.Value) error {
 			MapOf(d.TagName, source),
 			StructOf(d.TagName, target),
 		)
+	case reflect.Slice:
+		if source.Type().Elem().Kind() == reflect.Uint8 {
+			if data := source.Bytes(); json.Valid(data) {
+				if value := refer(target); value.CanAddr() {
+					if err := json.Unmarshal(data, value.Addr().Interface()); err == nil {
+						return set(target, value)
+					}
+				}
+			}
+		}
 	case reflect.String:
 		ok, err := d.textUnmarshal(source.String(), target)
 		if ok && err == nil {
 			return nil
 		}
-
-		fallthrough
-	default:
-		ok, err := d.valueScan(source.Interface(), target)
-		if ok && err == nil {
-			return nil
-		}
-
-		return rerror(source, target, err)
 	}
+
+	ok, err := d.valueScan(source.Interface(), target)
+	if ok && err == nil {
+		return nil
+	}
+
+	return rerror(source, target, err)
 }
 
 func (d *Converter) convertStructFromMap(source *Map, target *Struct) error {
@@ -316,7 +320,7 @@ func (d *Converter) convertStructFromMap(source *Map, target *Struct) error {
 			return err
 		}
 
-		item := source.Get(key)
+		item := elem(source.Get(key))
 
 		if !item.IsValid() {
 			continue
@@ -381,11 +385,11 @@ func (d *Converter) convertMapFromMap(source *Map, target *Map) error {
 		}
 
 		var (
-			item      = iter.Value()
+			item      = elem(iter.Value())
 			converted = create(target.Elem)
 		)
 
-		if err := d.convert(elem(item), converted); err != nil {
+		if err := d.convert(item, converted); err != nil {
 			return rerrorf(fmt.Sprintf("%v", iter.Key().Interface()), err)
 		}
 
@@ -418,6 +422,14 @@ func (d *Converter) convertToArray(source, target reflect.Value) error {
 			ArrayOf(d.TagName, target),
 		)
 	case reflect.Struct:
+		// if the target is []byte slice
+		if target.Type().Elem().Kind() == reflect.Uint8 {
+			if data, err := json.Marshal(elem(source).Interface()); err == nil {
+				source = reflect.ValueOf(data)
+				return d.convertToArray(source, target)
+			}
+		}
+
 		return d.convertArrayFromArray(
 			StructOf(d.TagName, source).Array(),
 			ArrayOf(d.TagName, target),
