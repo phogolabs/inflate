@@ -43,8 +43,10 @@ func (s *Struct) Fields() []*Field {
 			continue
 		}
 
-		if tag.Name == "" {
-			tag.Name = field.Name
+		if tag.Key != "default" {
+			if tag.Name == "" {
+				tag.Name = field.Name
+			}
 		}
 
 		fields = append(fields, &Field{
