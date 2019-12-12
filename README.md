@@ -102,7 +102,7 @@ We are open for any contributions. Just fork the
 [logo-license]: http://creativecommons.org/licenses/by/3.0/
 [codecov-url]: https://codecov.io/gh/phogolabs/inflate
 [codecov-img]: https://codecov.io/gh/phogolabs/inflate/branch/master/graph/badge.svg
-[action-img]: https://github.com/phogolabs/inflate/workflows/pipeline/badge.svg
+[action-img]: https://github.com/phogolabs/inflate/workflows/main/badge.svg
 [action-url]: https://github.com/phogolabs/inflate/actions
 [godoc-url]: https://godoc.org/github.com/phogolabs/inflate
 [godoc-img]: https://godoc.org/github.com/phogolabs/inflate?status.svg
