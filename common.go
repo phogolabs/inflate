@@ -249,7 +249,10 @@ func ArrayOf(tagName string, value reflect.Value) *Array {
 
 // Append appends an item to the array
 func (arr *Array) Append(value reflect.Value) {
-	expanded := reflect.Append(arr.Value, value)
+	target := reflect.New(arr.Elem).Elem()
+	set(target, value)
+
+	expanded := reflect.Append(arr.Value, target)
 	arr.Value.Set(expanded)
 }
 
