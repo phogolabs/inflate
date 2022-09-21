@@ -60,6 +60,15 @@ func (d *Decoder) Decode(value interface{}) error {
 		return err
 	}
 
+	if target.Kind() == reflect.Ptr {
+		value := reflect.New(target.Type().Elem())
+
+		if target.IsZero() {
+			target.Set(value)
+			target = value.Elem()
+		}
+	}
+
 	return d.decode(StructOf(d.TagName, target))
 }
 
