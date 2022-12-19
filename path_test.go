@@ -3,11 +3,11 @@ package inflate_test
 import (
 	"reflect"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	"github.com/go-chi/chi"
 	"github.com/phogolabs/inflate"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Path", func() {

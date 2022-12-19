@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"reflect"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	"github.com/phogolabs/inflate"
 	"github.com/phogolabs/inflate/fake"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Decoder", func() {

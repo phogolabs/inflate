@@ -7,11 +7,11 @@ import (
 	"io"
 	"time"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-
 	"github.com/phogolabs/inflate"
 	"github.com/phogolabs/schema"
+
+	. "github.com/onsi/ginkgo/v2"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Converter", func() {
@@ -458,7 +458,6 @@ var _ = Describe("Converter", func() {
 					Expect(target).To(Equal(uint(0)))
 				})
 			})
-
 		})
 
 		Context("when the target value is float", func() {
@@ -915,7 +914,7 @@ var _ = Describe("Converter", func() {
 				})
 
 				It("returns an error", func() {
-					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string 'wrong' to array: uuid: incorrect UUID length: wrong"))
+					Expect(converter.Convert(&source, &target)).To(MatchError("cannot convert string 'wrong' to array: uuid: incorrect UUID length 5 in string \"wrong\""))
 				})
 			})
 		})
@@ -1114,5 +1113,4 @@ var _ = Describe("Converter", func() {
 			})
 		})
 	})
-
 })

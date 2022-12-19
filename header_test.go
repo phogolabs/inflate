@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/phogolabs/inflate"
+
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-
-	"github.com/phogolabs/inflate"
 )
 
 var _ = Describe("Header", func() {
