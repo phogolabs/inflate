@@ -3,7 +3,7 @@ package inflate_test
 import (
 	"reflect"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/phogolabs/inflate"
 
 	. "github.com/onsi/ginkgo/v2"

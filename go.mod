@@ -3,7 +3,7 @@ module github.com/phogolabs/inflate
 go 1.19
 
 require (
-	github.com/go-chi/chi v4.1.2+incompatible
+	github.com/go-chi/chi/v5 v5.0.8
 	github.com/onsi/ginkgo/v2 v2.6.1
 	github.com/onsi/gomega v1.24.2
 	github.com/phogolabs/schema v0.0.0-20221219132603-9818dada473d
